@@ -5,10 +5,11 @@ const prisma = new PrismaClient()
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const project = await prisma.project.findUnique({
-    where: { id: Number(params.id) },
+    where: { id: Number(id) },
     include: {
       schedules: {
         include: {

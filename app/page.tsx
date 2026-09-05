@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
+import AdminChatbot from "@/components/AdminChatbot"
 
 const staff = [
   { name: "Nirun Chankol", email: "nirun@gmail.com" },
@@ -30,6 +31,10 @@ const Home: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       const res = await fetch("/api/projects")
+      if (!res.ok) {
+        console.error("Failed to fetch projects:", res.status)
+        return
+      }
       const data = await res.json()
       setProjects(data)
     }
@@ -127,6 +132,8 @@ const Home: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <AdminChatbot />
 
     </div>
   )
