@@ -62,7 +62,7 @@ export default async function SchedulePage() {
       
       <div className="grid grid-cols-8 border-b bg-gray-50 text-sm">
 
-        <div className="p-3 font-medium text-gray-600">
+        <div className="p-3 font-medium text-gray-700">
             Projects
         </div>
 
