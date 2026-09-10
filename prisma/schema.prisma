@@ -27,8 +27,9 @@ model Client {
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
 
-  location    String
-  projectName String @default("No Project")
+  location  String
+  projectId Int?
+  project   Project? @relation(fields: [projectId], references: [id])
 }
 
 // ================= PROJECT =================
@@ -38,6 +39,7 @@ model Project {
   location String
 
   schedules Schedule[]
+  clients   Client[]
 }
 
 // ================= WORKER =================
@@ -69,6 +71,9 @@ model ContactForm {
   email     String   @unique
   message   String
   createdAt DateTime @default(now())
+
+  reply     String?
+  repliedAt DateTime?
 }
 
 model History {

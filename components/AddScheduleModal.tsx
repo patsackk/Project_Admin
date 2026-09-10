@@ -5,12 +5,17 @@ import { useState } from "react"
 export default function AddScheduleModal({ workers, projects, action }: any) {
   const [open, setOpen] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   return (
     <>
       {/* BUTTON */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError("")
+          setOpen(true)
+        }}
         className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md text-sm hover:bg-indigo-600 hover:text-white transition"
       >
         + Add Schedule
@@ -24,8 +29,17 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
     e.preventDefault()
 
     const formData = new FormData(e.currentTarget)
+    setSubmitting(true)
+    setError("")
 
-    await action(formData)
+    const result = await action(formData)
+
+    setSubmitting(false)
+
+    if (result?.success === false) {
+      setError(result.error || "Something went wrong.")
+      return
+    }
 
     setOpen(false)
     setSuccess(true)
@@ -37,6 +51,12 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
             <h2 className="text-lg font-semibold text-gray-800">
               Assign Schedule
             </h2>
+
+            {error && (
+              <p className="text-xs bg-red-50 text-red-600 border border-red-200 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
 
             {/* Worker */}
             <div>
@@ -105,8 +125,11 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
                 Cancel
               </button>
 
-              <button className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-700">
-                Save
+              <button
+                disabled={submitting}
+                className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {submitting ? "Saving..." : "Save"}
               </button>
             </div>
           </form>

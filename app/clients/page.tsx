@@ -5,7 +5,9 @@ import { useEffect, useState } from "react"
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>([])
   const [selectedUserId, setSelectedUserId] = useState("")
+  const [selectedProjectId, setSelectedProjectId] = useState("")
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [search, setSearch] = useState("")
 
@@ -23,9 +25,17 @@ export default function ClientsPage() {
     setUsers(data)
   }
 
+  // Fetch projects
+  const fetchProjects = async () => {
+    const res = await fetch("/api/projects")
+    const data = await res.json()
+    setProjects(data)
+  }
+
   useEffect(() => {
     fetchClients()
     fetchUsers()
+    fetchProjects()
   }, [])
 
   // Handle create
@@ -39,13 +49,14 @@ export default function ClientsPage() {
         body: JSON.stringify({
           userId: Number(selectedUserId),
           location: "Add Location",
-          projectName: "No Project",
+          projectId: selectedProjectId ? Number(selectedProjectId) : null,
         }),
       })
       if (!res.ok) throw new Error("Failed to add client")
       const newClient = await res.json()
       setClients((prev) => [...prev, newClient])
       setSelectedUserId("")
+      setSelectedProjectId("")
       setSuccessMessage("Client added successfully!")
       setTimeout(() => setSuccessMessage(""), 2000)
     } catch (err: any) {
@@ -94,7 +105,7 @@ export default function ClientsPage() {
       },
       body: JSON.stringify({
         userId: client.userId,
-        projectName: client.projectName,
+        projectName: client.project?.name ?? "No Project",
         location: client.location,
       }),
     })
@@ -153,6 +164,19 @@ export default function ClientsPage() {
           ))}
         </select>
 
+        <select
+          value={selectedProjectId}
+          onChange={(e) => setSelectedProjectId(e.target.value)}
+          className="border px-3 py-2 rounded-lg flex-1"
+        >
+          <option value="">No Project</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+
         <button
           onClick={handleCreate}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto"
@@ -170,7 +194,7 @@ export default function ClientsPage() {
           >
             <h2 className="font-bold text-lg">{c.user?.name}</h2>
             <p className="mt-1 text-sm">
-              Project: <span className="font-semibold">{c.projectName}</span>
+              Project: <span className="font-semibold">{c.project?.name ?? "No Project"}</span>
             </p>
             <p className="text-sm text-gray-600">
               Location: {c.location}

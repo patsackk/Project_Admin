@@ -1,111 +1,111 @@
-"use client"
-
-import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import AdminChatbot from "@/components/AdminChatbot"
+import { MapPin } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 
-const staff = [
-  { name: "Nirun Chankol", email: "nirun@gmail.com" },
-  { name: "Kansire Chankol", email: "....@gmail.com" },
-  { name: "Phannita Winyupradit", email: "....@gmail.com" },
-];
+export default async function Home() {
+  const projects = await prisma.project.findMany({
+    include: {
+      schedules: { include: { worker: true } },
+      clients: { include: { user: true } },
+    },
+  })
 
-const workers = [
-  {
-    team: "Electric System Teams",
-    members: ["Chacrit Popu"],
-  },
-  {
-    team: "Water Supply System Teams",
-    members: ["Paniti Chankol", "....."],
-  },
-  {
-    team: "Air Conditioning System Teams",
-    members: ["Nirun Chankol"],
-  },
-];
-
-const Home: React.FC = () => {
-  const [projects, setProjects] = useState<any[]>([])
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      const res = await fetch("/api/projects")
-      if (!res.ok) {
-        console.error("Failed to fetch projects:", res.status)
-        return
-      }
-      const data = await res.json()
-      setProjects(data)
-    }
-
-    fetchProjects()
-  }, [])
+  const projectOverview = projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    location: p.location,
+    scheduleCount: p.schedules.length,
+    workers: Array.from(new Set(p.schedules.map((s) => s.worker.name))),
+    clients: p.clients.map((c) => c.user.name),
+  }))
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
 
       {/* PROJECTS */}
       <h2 className="text-lg font-semibold mb-3">Projects</h2>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-        {projects.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white rounded-2xl shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition"
-          >
-            <div>
-              <h3 className="font-semibold text-gray-800 text-sm md:text-base">
-                {p.name}
-              </h3>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">
-                {p.location}
-              </p>
-            </div>
 
-            {/* ✅ FIXED LINK */}
-            <Link href={`/project/${p.id}`}>
-              <button className="mt-3 border border-gray-300 text-xs md:text-sm py-1.5 rounded-lg hover:bg-gray-100 transition w-full">
-                View Detail
-              </button>
-            </Link>
-          </div>
-        ))}
+      {projects.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-md p-8 text-center text-sm text-gray-400 mb-6">
+          No projects yet.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
+          {projects.map((p) => (
+            <div
+              key={p.id}
+              className="bg-white rounded-2xl shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition"
+            >
+              <div>
+                <div className="flex items-start justify-between">
+                  <h3 className="font-semibold text-gray-800 text-sm md:text-base">
+                    {p.name}
+                  </h3>
+                  <span className="text-[10px] bg-sky-50 text-sky-600 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {p.schedules.length} scheduled
+                  </span>
+                </div>
+                <p className="flex items-center gap-1 text-xs md:text-sm text-gray-500 mt-1">
+                  <MapPin size={12} />
+                  {p.location}
+                </p>
+              </div>
+
+              <Link href={`/project/${p.id}`}>
+                <button className="mt-3 border border-gray-300 text-xs md:text-sm py-1.5 rounded-lg hover:bg-gray-100 transition w-full">
+                  View Detail
+                </button>
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* RECENT ACTIVITY */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold">Recent Activity</h2>
+        <Link href="/schedule" className="text-xs text-sky-600 hover:underline">
+          View schedule →
+        </Link>
       </div>
 
-      {/* STAFF + WORKERS */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        
-        {/* STAFF */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="font-semibold mb-3">Staffs</h2>
-          {staff.map((s, i) => (
-            <div key={i} className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gray-300 rounded-full" />
-              <div>
-                <p className="text-sm font-medium">{s.name}</p>
-                <p className="text-xs text-blue-600">{s.email}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* WORKERS */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="font-semibold mb-3">Workers</h2>
-          {workers.map((w, i) => (
-            <div key={i} className="mb-4">
-              <p className="text-sm font-semibold">{w.team}</p>
-              {w.members.map((m, j) => (
-                <div key={j} className="flex items-center gap-3 mt-2">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full" />
-                  <p className="text-sm">{m}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-6">
+        {projectOverview.length === 0 ? (
+          <p className="text-sm text-gray-400 p-6 text-center">No projects yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500">
+                <tr>
+                  <th className="text-left p-4 font-medium">Project</th>
+                  <th className="text-left p-4 font-medium">Location</th>
+                  <th className="text-left p-4 font-medium">Assigned Workers</th>
+                  <th className="text-left p-4 font-medium">Client</th>
+                  <th className="text-left p-4 font-medium">Schedules</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projectOverview.map((p) => (
+                  <tr key={p.id} className="border-t hover:bg-gray-50 transition">
+                    <td className="p-4 font-medium text-gray-800">{p.name}</td>
+                    <td className="p-4 text-gray-600">{p.location}</td>
+                    <td className="p-4 text-gray-600">
+                      {p.workers.length > 0 ? p.workers.join(", ") : "—"}
+                    </td>
+                    <td className="p-4 text-gray-600">
+                      {p.clients.length > 0 ? p.clients.join(", ") : "—"}
+                    </td>
+                    <td className="p-4">
+                      <span className="text-xs bg-sky-50 text-sky-600 px-2 py-1 rounded-full">
+                        {p.scheduleCount}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* QUICK ACCESS */}
@@ -133,10 +133,6 @@ const Home: React.FC = () => {
         ))}
       </div>
 
-      <AdminChatbot />
-
     </div>
   )
 }
-
-export default Home

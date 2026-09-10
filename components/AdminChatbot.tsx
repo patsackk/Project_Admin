@@ -1,11 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import ReactMarkdown from "react-markdown"
 
 type Message = { role: "user" | "assistant"; content: string }
 
 export default function AdminChatbot() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -63,10 +70,14 @@ export default function AdminChatbot() {
                 className={`text-sm px-3 py-2 rounded-xl max-w-[85%] ${
                   m.role === "user"
                     ? "bg-indigo-100 text-indigo-900 ml-auto"
-                    : "bg-gray-100 text-gray-800"
+                    : "bg-gray-100 text-gray-800 prose prose-sm prose-p:my-1 prose-ul:my-1 prose-ol:my-1 max-w-[85%]"
                 }`}
               >
-                {m.content}
+                {m.role === "assistant" ? (
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                ) : (
+                  m.content
+                )}
               </div>
             ))}
             {loading && (

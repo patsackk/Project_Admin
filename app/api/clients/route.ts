@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 // GET
 export async function GET() {
   const clients = await prisma.client.findMany({
-    include: { user: true },
+    include: { user: true, project: true },
   })
   return Response.json(clients)
 }
@@ -16,9 +16,9 @@ export async function POST(req: Request) {
     data: {
       userId: body.userId,
       location: body.location,
-      projectName: body.projectName,
+      projectId: body.projectId ?? null,
     },
-    include: { user: true }, // ✅ add this
+    include: { user: true, project: true },
   })
 
   return Response.json(client)

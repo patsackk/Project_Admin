@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Header from '@/components/Header';
 import { Toaster } from "react-hot-toast";
+import AdminChatbot from '@/components/AdminChatbot';
 
 export default function ClientLayout({
   children,
@@ -27,6 +28,8 @@ export default function ClientLayout({
           className: "toast-slide",
         }}
       />
+
+      <AdminChatbot />
     </>
   );
 }

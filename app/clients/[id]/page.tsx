@@ -9,7 +9,8 @@ export default function ClientDetailPage() {
   const router = useRouter() // <-- for navigation
 
   const [client, setClient] = useState<any>(null)
-  const [projectName, setProjectName] = useState("")
+  const [projects, setProjects] = useState<any[]>([])
+  const [projectId, setProjectId] = useState("")
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -23,7 +24,7 @@ export default function ClientDetailPage() {
       })
       .then((data) => {
         setClient(data)
-        setProjectName(data.projectName)
+        setProjectId(data.projectId ? String(data.projectId) : "")
         setLocation(data.location)
         setLoading(false)
       })
@@ -31,6 +32,10 @@ export default function ClientDetailPage() {
         setError(err.message || "Something went wrong")
         setLoading(false)
       })
+
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then(setProjects)
   }, [id])
 
   const handleUpdate = async () => {
@@ -38,14 +43,14 @@ export default function ClientDetailPage() {
     const res = await fetch(`/api/clients/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectName, location }),
+      body: JSON.stringify({ projectId: projectId ? Number(projectId) : null, location }),
     })
     if (!res.ok) throw new Error("Update failed")
+    const updated = await res.json()
 
-    // ✅ Update only the fields we changed
     setClient((prev: any) => ({
       ...prev,
-      projectName,
+      project: updated.project,
       location,
       updatedAt: new Date().toISOString(), // optional: show last updated time
     }))
@@ -80,16 +85,22 @@ export default function ClientDetailPage() {
     {/* Update Form */}
     <div className="space-y-4">
       <div className="flex flex-col">
-        <label htmlFor="projectName" className="text-gray-600 font-medium mb-1">
-          Project Name
+        <label htmlFor="projectId" className="text-gray-600 font-medium mb-1">
+          Project
         </label>
-        <input
-          id="projectName"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
+        <select
+          id="projectId"
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
           className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-          placeholder="Enter project name"
-        />
+        >
+          <option value="">No Project</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-col">

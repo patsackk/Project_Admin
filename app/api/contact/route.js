@@ -2,6 +2,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export async function GET() {
+  const messages = await prisma.contactForm.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+  return Response.json(messages);
+}
+
 export async function POST(req) {
   try {
     // Log incoming request body to verify it's being sent correctly

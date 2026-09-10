@@ -6,7 +6,7 @@ export async function GET(req: Request, { params }: any) {
 
   const client = await prisma.client.findUnique({
     where: { id: Number(id) },
-    include: { user: true },
+    include: { user: true, project: true },
   })
 
   if (!client) {
@@ -25,8 +25,9 @@ export async function PUT(req: Request, { params }: any) {
     where: { id: Number(id) },
     data: {
       location: body.location,
-      projectName: body.projectName,
+      projectId: body.projectId ?? null,
     },
+    include: { project: true },
   })
 
   return Response.json(updated)

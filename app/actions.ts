@@ -68,19 +68,39 @@ export async function addSchedule(formData: FormData) {
     const end = new Date(`1970-01-01T${endTime}`)
 
     if (end <= start) {
-      console.log("Invalid time")
-      return
+      return { success: false, error: "End time must be after start time." }
     }
 
     if (!workerId || !projectId || !dateRaw) {
-      console.log("Missing data")
-      return
+      return { success: false, error: "Please fill in worker, project, and date." }
     }
 
     const date = new Date(dateRaw)
     if (isNaN(date.getTime())) {
-      console.log("Invalid date")
-      return
+      return { success: false, error: "Invalid date." }
+    }
+
+    const dayStart = new Date(date)
+    dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(date)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    const sameDaySchedules = await prisma.schedule.findMany({
+      where: { workerId, date: { gte: dayStart, lte: dayEnd } },
+      include: { project: true },
+    })
+
+    const overlap = sameDaySchedules.find((s) => {
+      const existingStart = new Date(`1970-01-01T${s.startTime}`)
+      const existingEnd = new Date(`1970-01-01T${s.endTime}`)
+      return start < existingEnd && existingStart < end
+    })
+
+    if (overlap) {
+      return {
+        success: false,
+        error: `This worker is already booked on ${overlap.project.name} from ${overlap.startTime} to ${overlap.endTime}.`,
+      }
     }
 
     await prisma.schedule.create({
@@ -94,8 +114,10 @@ export async function addSchedule(formData: FormData) {
     })
 
     revalidatePath("/schedule")
+    return { success: true }
   } catch (error) {
     console.error("Add Schedule Error:", error)
+    return { success: false, error: "Something went wrong. Please try again." }
   }
 }
 
