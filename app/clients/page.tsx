@@ -10,6 +10,16 @@ export default function ClientsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState("")
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [search, setSearch] = useState("")
+  const [canDelete, setCanDelete] = useState(false)
+  const [canMarkDone, setCanMarkDone] = useState(false)
+
+  // Fetch current session (Admin vs Staff) to decide which actions to show
+  const fetchSession = async () => {
+    const res = await fetch("/api/session", { cache: "no-store" })
+    const data = await res.json()
+    setCanDelete(!!data.permissions?.deleteClient)
+    setCanMarkDone(!!data.permissions?.markClientDone)
+  }
 
   // Fetch clients
   const fetchClients = async () => {
@@ -33,9 +43,19 @@ export default function ClientsPage() {
   }
 
   useEffect(() => {
+    fetchSession()
     fetchClients()
     fetchUsers()
     fetchProjects()
+
+    // Re-check the session whenever it changes elsewhere (e.g. switching
+    // role on /choose-role) so the Delete/Done buttons stay accurate.
+    window.addEventListener('storage', fetchSession)
+    window.addEventListener('focus', fetchSession)
+    return () => {
+      window.removeEventListener('storage', fetchSession)
+      window.removeEventListener('focus', fetchSession)
+    }
   }, [])
 
   // Handle create
@@ -73,7 +93,7 @@ export default function ClientsPage() {
       const res = await fetch("/api/clients", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, action: "delete" }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.message)
@@ -116,7 +136,7 @@ export default function ClientsPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: client.id }),
+      body: JSON.stringify({ id: client.id, action: "done" }),
     })
 
     // 3. Update UI
@@ -179,7 +199,7 @@ export default function ClientsPage() {
 
         <button
           onClick={handleCreate}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto"
+          className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition w-full sm:w-auto"
         >
           + Add Client
         </button>
@@ -205,24 +225,28 @@ export default function ClientsPage() {
             <div className="mt-4 flex gap-2">
             <a
               href={`/clients/${c.id}`}
-              className="flex-1 bg-blue-500 text-white text-center text-sm px-2 py-1 rounded hover:bg-blue-600 transition"
+              className="flex-1 bg-sky-500 text-white text-center text-sm px-2 py-1 rounded hover:bg-sky-600 transition"
             >
               View Details
             </a>
 
-            <button
-              onClick={() => handleDone(c)}
-              className="flex-1 bg-green-500 text-white text-sm px-2 py-1 rounded hover:bg-green-600 transition"
-            >
-              Done
-            </button>
+            {canMarkDone && (
+              <button
+                onClick={() => handleDone(c)}
+                className="flex-1 bg-green-500 text-white text-sm px-2 py-1 rounded hover:bg-green-600 transition"
+              >
+                Done
+              </button>
+            )}
 
-            <button
-              onClick={() => handleDelete(c.id)}
-              className="flex-1 bg-red-500 text-white text-sm px-2 py-1 rounded hover:bg-red-600 transition"
-            >
-              Delete
-            </button>
+            {canDelete && (
+              <button
+                onClick={() => handleDelete(c.id)}
+                className="flex-1 bg-red-500 text-white text-sm px-2 py-1 rounded hover:bg-red-600 transition"
+              >
+                Delete
+              </button>
+            )}
           </div>
 
             {/* HOVER POPUP */}

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { hasAccess } from "@/lib/permissions"
 
 // GET
 export async function GET() {
@@ -24,11 +25,22 @@ export async function POST(req: Request) {
   return Response.json(client)
 }
 
-// DELETE
+// DELETE (Admin only, unless granted to Staff via /permissions).
+// `action` distinguishes an outright delete from "mark done" (which also
+// deletes the client row, after archiving to History) since they're
+// independently toggleable permissions.
 export async function DELETE(req: Request) {
-  try {
-    const { id } = await req.json() // we pass the client id from front-end
+  const { id, action } = await req.json()
+  const permissionKey = action === "done" ? "markClientDone" : "deleteClient"
 
+  if (!(await hasAccess(permissionKey))) {
+    return Response.json(
+      { success: false, message: "You don't have permission to do that." },
+      { status: 403 }
+    )
+  }
+
+  try {
     const deletedClient = await prisma.client.delete({
       where: { id: Number(id) },
     })

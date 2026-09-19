@@ -2,10 +2,14 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { hasAccess } from "@/lib/permissions"
 
-// ➕ Add Project
+// ➕ Add Project (Admin only, unless granted to Staff via /permissions)
 export async function addProject(formData: FormData) {
-    console.log("🔥 ADD PROJECT CLICKED")
+  if (!(await hasAccess("addProject"))) {
+    console.warn("Blocked addProject: not permitted for this session")
+    return
+  }
 
   try {
     // ✅ Safe string extraction
@@ -34,8 +38,13 @@ export async function addProject(formData: FormData) {
   }
 }
 
-// ➕ Add Worker
+// ➕ Add Worker (Admin only, unless granted to Staff via /permissions)
 export async function addWorker(formData: FormData) {
+  if (!(await hasAccess("addWorker"))) {
+    console.warn("Blocked addWorker: not permitted for this session")
+    return
+  }
+
   try {
     const name = formData.get("name")?.toString().trim()
     const team = formData.get("team")?.toString().trim() || "General"
@@ -121,8 +130,13 @@ export async function addSchedule(formData: FormData) {
   }
 }
 
-// ❌ Delete Schedule
+// ❌ Delete Schedule (Admin only, unless granted to Staff via /permissions)
 export async function deleteScheduleById(formData: FormData) {
+  if (!(await hasAccess("unassignSchedule"))) {
+    console.warn("Blocked deleteScheduleById: not permitted for this session")
+    return
+  }
+
   try {
     const id = Number(formData.get("id"))
 
@@ -138,8 +152,13 @@ export async function deleteScheduleById(formData: FormData) {
   }
 }
 
-// ❌ Delete Project (SAFE)
+// ❌ Delete Project (Admin only, unless granted to Staff via /permissions)
 export async function deleteProject(formData: FormData) {
+  if (!(await hasAccess("deleteProject"))) {
+    console.warn("Blocked deleteProject: not permitted for this session")
+    return
+  }
+
   try {
     const id = Number(formData.get("id"))
 

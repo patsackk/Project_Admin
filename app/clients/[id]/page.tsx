@@ -92,7 +92,7 @@ export default function ClientDetailPage() {
           id="projectId"
           value={projectId}
           onChange={(e) => setProjectId(e.target.value)}
-          className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
         >
           <option value="">No Project</option>
           {projects.map((p) => (
@@ -111,7 +111,7 @@ export default function ClientDetailPage() {
           id="location"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
           placeholder="Enter location"
         />
       </div>
@@ -120,7 +120,7 @@ export default function ClientDetailPage() {
       <div className="flex gap-2 mt-2">
         <button
           onClick={handleUpdate}
-          className="flex-1 bg-blue-500 text-white text-sm px-2 py-2 rounded hover:bg-blue-600 transition font-semibold shadow"
+          className="flex-1 bg-sky-500 text-white text-sm px-2 py-2 rounded hover:bg-sky-600 transition font-semibold shadow"
         >
           Update
         </button>

@@ -1,17 +1,12 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req) {
   try {
-    // Log request information for debugging
-    console.log('Incoming POST request');
-
     // Parse the JSON body
-    const { name, email, phone, address, password } = await req.json();
-    // Basic validation
-    if (!name || !email || !phone || !address || !password) {
+    const { name, email, phone, address } = await req.json();
+    // Basic validation. This form only ever creates a client contact
+    // record — clients never log in anywhere, so no password is collected.
+    if (!name || !email || !phone || !address) {
   return new Response(
     JSON.stringify({ message: 'All fields are required.' }),
     { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -39,22 +34,19 @@ export async function POST(req) {
       );
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create the user in the database
+    // Create the user in the database. Public sign-up always creates a
+    // client contact record — admin accounts are never created through
+    // this form, and clients never log in, so there is no password.
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
         address,
-        password: hashedPassword,
+        role: 'client',
       },
     });
 
-    // Respond with success
-    console.log('User created successfully:', user);
     return new Response(
       JSON.stringify({ message: 'User registered successfully!', user }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
@@ -68,8 +60,5 @@ export async function POST(req) {
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
-  } finally {
-    // Disconnect Prisma client
-    await prisma.$disconnect();
   }
 }

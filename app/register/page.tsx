@@ -8,7 +8,6 @@ type RegisterFormData = {
   email: string;
   phone: string;
   address: string;
-  password: string;
 };
 
 export default function RegisterPage() {
@@ -17,7 +16,6 @@ export default function RegisterPage() {
   email: '',
   phone: '',
   address: '',
-  password: '',
 });
 
   const [message, setMessage] = useState<string>('');
@@ -55,7 +53,6 @@ export default function RegisterPage() {
               email: '',
               phone: '',
               address: '',
-              password: '',
             });
       } else {
         setMessage(data.message || 'Registration failed.');
@@ -69,7 +66,7 @@ export default function RegisterPage() {
   };
 
   const handleBackToHome = () => {
-    router.push('/');
+    router.push('/login');
   };
 
   return (
@@ -79,10 +76,10 @@ export default function RegisterPage() {
       {/* Title */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
-          Create Account 
+          Register Your Details
         </h1>
         <p className="text-gray-500 mt-2 text-sm">
-          Join <span className="font-semibold">UTO Advance</span> today
+          Tell <span className="font-semibold">UTO Advance</span> about yourself and our team will be in touch
         </p>
       </div>
 
@@ -165,22 +162,6 @@ export default function RegisterPage() {
             />
           </div>
 
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            required
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-          />
-        </div>
-
         {/* Buttons */}
         <div className="flex flex-col gap-3 pt-2">
           <button
@@ -188,7 +169,7 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full rounded-full bg-gradient-to-r from-sky-600 to-sky-800 py-3 text-white text-sm font-semibold shadow hover:opacity-90 transition disabled:opacity-60"
           >
-            {isLoading ? 'Signing up...' : 'Sign Up'}
+            {isLoading ? 'Submitting...' : 'Submit'}
           </button>
 
           <button
@@ -196,7 +177,7 @@ export default function RegisterPage() {
             onClick={handleBackToHome}
             className="w-full rounded-full border border-sky-600 py-3 text-sky-700 text-sm font-medium hover:bg-sky-50 transition"
           >
-            Back to Home
+            Back to Login
           </button>
         </div>
       </form>

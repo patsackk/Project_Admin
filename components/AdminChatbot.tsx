@@ -56,7 +56,7 @@ export default function AdminChatbot() {
     <div className="fixed bottom-6 right-6 z-50">
       {open && (
         <div className="mb-3 w-80 h-96 bg-white rounded-2xl shadow-xl border flex flex-col overflow-hidden">
-          <div className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between">
+          <div className="bg-sky-600 text-white px-4 py-3 flex items-center justify-between">
             <span className="font-semibold text-sm">Admin Assistant</span>
             <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white">
               ✕
@@ -69,7 +69,7 @@ export default function AdminChatbot() {
                 key={i}
                 className={`text-sm px-3 py-2 rounded-xl max-w-[85%] ${
                   m.role === "user"
-                    ? "bg-indigo-100 text-indigo-900 ml-auto"
+                    ? "bg-sky-100 text-sky-900 ml-auto"
                     : "bg-gray-100 text-gray-800 prose prose-sm prose-p:my-1 prose-ul:my-1 prose-ol:my-1 max-w-[85%]"
                 }`}
               >
@@ -98,7 +98,7 @@ export default function AdminChatbot() {
             <button
               onClick={sendMessage}
               disabled={loading}
-              className="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+              className="bg-sky-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-sky-700 disabled:opacity-50"
             >
               Send
             </button>
@@ -108,7 +108,7 @@ export default function AdminChatbot() {
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-indigo-700 transition"
+        className="bg-sky-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-sky-700 transition"
       >
         {open ? "✕" : "💬"}
       </button>

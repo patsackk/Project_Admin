@@ -12,13 +12,15 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
-  password  String
+  password  String? // only admin accounts have one — clients never log in
   phone     String?
   address   String?
+  role      String   @default("client") // "admin" | "client"
   createdAt DateTime @default(now())
 
-  client  Client? // relation
-  history History[]
+  client        Client? // relation
+  history       History[]
+  statusUpdates StatusUpdate[] // updates this admin/staff account has posted
 }
 
 // ================= CLIENT PROFILE =================
@@ -30,6 +32,8 @@ model Client {
   location  String
   projectId Int?
   project   Project? @relation(fields: [projectId], references: [id])
+
+  statusUpdates StatusUpdate[]
 }
 
 // ================= PROJECT =================
@@ -38,8 +42,9 @@ model Project {
   name     String
   location String
 
-  schedules Schedule[]
-  clients   Client[]
+  schedules     Schedule[]
+  clients       Client[]
+  statusUpdates StatusUpdate[]
 }
 
 // ================= WORKER =================
@@ -74,6 +79,48 @@ model ContactForm {
 
   reply     String?
   repliedAt DateTime?
+}
+
+// ================= PERMISSIONS (singleton row) =================
+// Controls what a Staff-level session (role "admin", level "staff") is
+// allowed to do, on top of the fixed baseline everyone gets. Admin-level
+// sessions always have full access regardless of these flags.
+model Permission {
+  id Int @id @default(1)
+
+  staffUnassignSchedule Boolean @default(false)
+  staffAddProject       Boolean @default(false)
+  staffDeleteProject    Boolean @default(false)
+  staffAddWorker        Boolean @default(false)
+  staffDeleteClient     Boolean @default(false)
+  staffMarkClientDone   Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+}
+
+// ================= STATUS UPDATE =================
+// A progress update an admin/staff account posts for a client's project.
+// Client web (a separate app reading this same database) shows whichever
+// rows have isDraft = false.
+model StatusUpdate {
+  id Int @id @default(autoincrement())
+
+  clientId Int?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  projectId Int?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  status          String // "Not Started" | "In Progress" | "Completed"
+  percentComplete Int      @default(0)
+  notes           String
+  photos          String[] @default([])
+  isDraft         Boolean  @default(false)
+
+  createdAt DateTime @default(now())
 }
 
 model History {

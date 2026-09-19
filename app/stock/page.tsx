@@ -59,7 +59,7 @@ export default function StockPage() {
               onClick={() => setFilter(cat)}
               className={`px-4 py-1 rounded-full text-sm border ${
                 filter === cat
-                  ? "bg-blue-600 text-white"
+                  ? "bg-sky-600 text-white"
                   : "bg-white text-gray-600"
               }`}
             >

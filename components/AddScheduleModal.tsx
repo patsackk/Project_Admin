@@ -16,7 +16,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
           setError("")
           setOpen(true)
         }}
-        className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md text-sm hover:bg-indigo-600 hover:text-white transition"
+        className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-md text-sm hover:bg-sky-600 hover:text-white transition"
       >
         + Add Schedule
       </button>
@@ -127,7 +127,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
               <button
                 disabled={submitting}
-                className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+                className="bg-sky-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-sky-700 disabled:opacity-50"
               >
                 {submitting ? "Saving..." : "Save"}
               </button>

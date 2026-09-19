@@ -5,6 +5,7 @@ import AddEntityModal from "@/components/AddEntityModal"
 import UnassignedStaffPanel from "@/components/UnassignedStaffPanel"
 import { addProject, addWorker, addSchedule, deleteScheduleById, deleteProject } from "../actions"
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react"
+import { hasAccess } from "@/lib/permissions"
 
 function getMonday(d: Date) {
   const date = new Date(d)
@@ -41,6 +42,12 @@ export default async function SchedulePage({
   searchParams: Promise<{ date?: string; view?: string; range?: string }>
 }) {
   const { date, view, range } = await searchParams
+  const [canAddProject, canAddWorker, canDeleteProject, canUnassign] = await Promise.all([
+    hasAccess("addProject"),
+    hasAccess("addWorker"),
+    hasAccess("deleteProject"),
+    hasAccess("unassignSchedule"),
+  ])
   const activeView = view === "worker" ? "worker" : "project"
   const activeRange: RangeType =
     range === "day" || range === "month" ? range : "week"
@@ -130,21 +137,25 @@ export default async function SchedulePage({
         <h1 className="text-xl font-bold">Schedule System</h1>
 
        <div className="flex gap-2">
-  <AddEntityModal
-    addProject={addProject}
-    addWorker={addWorker}
-    defaultType="project"
-    label="+ Add Project"
-    buttonClass="bg-sky-100 text-sky-700 hover:bg-sky-600 hover:text-white"
-  />
+  {canAddProject && (
+    <AddEntityModal
+      addProject={addProject}
+      addWorker={addWorker}
+      defaultType="project"
+      label="+ Add Project"
+      buttonClass="bg-sky-100 text-sky-700 hover:bg-sky-600 hover:text-white"
+    />
+  )}
 
-  <AddEntityModal
-    addProject={addProject}
-    addWorker={addWorker}
-    defaultType="worker"
-    label="+ Add Worker"
-    buttonClass="bg-cyan-100 text-cyan-700 hover:bg-cyan-600 hover:text-white"
-  />
+  {canAddWorker && (
+    <AddEntityModal
+      addProject={addProject}
+      addWorker={addWorker}
+      defaultType="worker"
+      label="+ Add Worker"
+      buttonClass="bg-cyan-100 text-cyan-700 hover:bg-cyan-600 hover:text-white"
+    />
+  )}
 
   <AddScheduleModal
     workers={workers}
@@ -318,10 +329,12 @@ export default async function SchedulePage({
                   <p className="font-semibold">{project.name}</p>
                   <p className="text-xs text-gray-500">{project.location}</p>
 
-                  <form action={deleteProject}>
-                    <input type="hidden" name="id" value={project.id} />
-                    <button className="text-red-500 text-xs mt-2">Delete</button>
-                  </form>
+                  {canDeleteProject && (
+                    <form action={deleteProject}>
+                      <input type="hidden" name="id" value={project.id} />
+                      <button className="text-red-500 text-xs mt-2">Delete</button>
+                    </form>
+                  )}
                 </div>
 
                 {/* Days */}
@@ -338,7 +351,7 @@ export default async function SchedulePage({
                           <form key={s.id} action={deleteScheduleById}>
                             <input type="hidden" name="id" value={s.id} />
 
-                            <div className="bg-blue-100 p-2 rounded shadow mb-2">
+                            <div className="bg-sky-100 p-2 rounded shadow mb-2">
                               <p className="text-sm font-semibold">{s.worker.name}</p>
 
                               <div className="flex items-center text-xs gap-1">
@@ -346,9 +359,11 @@ export default async function SchedulePage({
                                 {s.startTime} - {s.endTime}
                               </div>
 
-                              <button className="text-red-500 text-xs mt-1">
-                                Unassign
-                              </button>
+                              {canUnassign && (
+                                <button className="text-red-500 text-xs mt-1">
+                                  Unassign
+                                </button>
+                              )}
                             </div>
                           </form>
                         ))
@@ -389,7 +404,7 @@ export default async function SchedulePage({
                         <form key={s.id} action={deleteScheduleById}>
                           <input type="hidden" name="id" value={s.id} />
 
-                          <div className="bg-emerald-100 p-2 rounded shadow mb-2">
+                          <div className="bg-cyan-100 p-2 rounded shadow mb-2">
                             <p className="text-sm font-semibold">{s.project.name}</p>
 
                             <div className="flex items-center text-xs gap-1">
@@ -397,9 +412,11 @@ export default async function SchedulePage({
                               {s.startTime} - {s.endTime}
                             </div>
 
-                            <button className="text-red-500 text-xs mt-1">
-                              Unassign
-                            </button>
+                            {canUnassign && (
+                              <button className="text-red-500 text-xs mt-1">
+                                Unassign
+                              </button>
+                            )}
                           </div>
                         </form>
                       ))

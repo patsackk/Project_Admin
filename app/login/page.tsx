@@ -44,19 +44,14 @@ export default function Login() {
       if (response.ok) {
         setSuccess('Login successful!');
         setError('');
-        console.log('Logged in user:', data.user);
-        
-        localStorage.setItem('token', data.token);
+
         localStorage.setItem('username', data.user.name);
 
         // 👇 FORCE HEADER TO RE-RENDER
         window.dispatchEvent(new Event('storage'));
-         
-        router.push('/');
 
-
-        // Redirect to the homepage
-        router.push('/'); // Back to Home after login
+        router.push('/choose-role');
+        router.refresh();
       } else {
         setError(data.message || 'Login failed, please try again.');
         setSuccess('');
@@ -67,11 +62,6 @@ export default function Login() {
     } finally {
       setLoading(false); // Stop loading once the request is done
     }
-  };
-
-  // Handle back to home page
-  const handleBackToHome = () => {
-    router.push('/'); // Redirect to the homepage
   };
 
   return (
@@ -142,14 +132,6 @@ export default function Login() {
             className="w-full rounded-full bg-gradient-to-r from-sky-600 to-sky-800 py-3 text-white text-sm font-semibold shadow hover:opacity-90 transition disabled:opacity-60"
           >
             {loading ? 'Logging in...' : 'Login'}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleBackToHome}
-            className="w-full rounded-full border border-sky-600 py-3 text-sky-700 text-sm font-medium hover:bg-sky-50 transition"
-          >
-            Back to Home
           </button>
         </div>
       </form>

@@ -118,14 +118,14 @@ export default async function Home() {
         ].map((item, i) => (
           <div
             key={i}
-            className="bg-blue-50 p-4 md:p-5 rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition"
+            className="bg-sky-50 p-4 md:p-5 rounded-2xl shadow-md flex flex-col justify-between hover:shadow-lg transition"
           >
-            <h3 className="text-center font-semibold text-sm md:text-base text-blue-700">
+            <h3 className="text-center font-semibold text-sm md:text-base text-sky-700">
               {item.name}
             </h3>
 
             <Link href={item.href}>
-              <button className="mt-4 w-full bg-white text-blue-600 text-xs md:text-sm py-2 rounded-lg hover:bg-gray-100 transition">
+              <button className="mt-4 w-full bg-white text-sky-600 text-xs md:text-sm py-2 rounded-lg hover:bg-gray-100 transition">
                 Go to {item.name}
               </button>
             </Link>
