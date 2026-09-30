@@ -26,12 +26,37 @@ function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString()
 }
 
+function startOfDay(d: Date) {
+  const date = new Date(d)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
+function endOfDay(d: Date) {
+  const date = new Date(d)
+  date.setHours(23, 59, 59, 999)
+  return date
+}
+
 function sameMonth(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 }
 
+// Local-calendar-date <-> "YYYY-MM-DD" helpers. Deliberately NOT using
+// toISOString()/new Date(string) for this — those go through UTC, and in
+// a timezone ahead of UTC (e.g. Bangkok, UTC+7) that silently rolls local
+// midnight back to the previous day, which then throws week navigation
+// off by a full extra week once getMonday() re-snaps to a Monday.
 function toParam(d: Date) {
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+function parseParam(s: string) {
+  const [y, m, day] = s.split("-").map(Number)
+  return new Date(y, m - 1, day)
 }
 
 type RangeType = "day" | "week" | "month"
@@ -60,22 +85,8 @@ export default async function SchedulePage({
   const workers = await prisma.worker.findMany()
 
   const today = new Date()
-  const parsedAnchor = date ? new Date(date) : today
+  const parsedAnchor = date ? parseParam(date) : today
   const anchor = isNaN(parsedAnchor.getTime()) ? today : parsedAnchor
-
-  const workerAvailability = workers.map((w) => {
-    const todaySchedule = schedules.find(
-      (s) => s.workerId === w.id && sameDay(new Date(s.date), today)
-    )
-
-    return {
-      ...w,
-      available: !todaySchedule,
-      project: todaySchedule
-        ? projects.find((p) => p.id === todaySchedule.projectId)?.name
-        : null,
-    }
-  })
 
   // ---- Compute navigation + view window based on range ----
   let viewDates: Date[] = []
@@ -83,6 +94,10 @@ export default async function SchedulePage({
   let nextAnchor: Date
   let rangeLabel = ""
   let monthWeeks: Date[][] = []
+  // The "Unassigned Staff" panel follows whichever day/week/month is
+  // currently being viewed, not literally today's date.
+  let rangeStart: Date
+  let rangeEnd: Date
 
   if (activeRange === "day") {
     viewDates = [anchor]
@@ -94,6 +109,8 @@ export default async function SchedulePage({
       day: "numeric",
       year: "numeric",
     })
+    rangeStart = startOfDay(anchor)
+    rangeEnd = endOfDay(anchor)
   } else if (activeRange === "month") {
     const firstOfMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1)
     const lastOfMonth = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0)
@@ -109,6 +126,8 @@ export default async function SchedulePage({
     prevAnchor = new Date(anchor.getFullYear(), anchor.getMonth() - 1, 1)
     nextAnchor = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1)
     rangeLabel = anchor.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    rangeStart = startOfDay(firstOfMonth)
+    rangeEnd = endOfDay(lastOfMonth)
   } else {
     const weekStart = getMonday(anchor)
     viewDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
@@ -122,7 +141,27 @@ export default async function SchedulePage({
       day: "numeric",
       year: "numeric",
     })}`
+    rangeStart = startOfDay(viewDates[0])
+    rangeEnd = endOfDay(viewDates[6])
   }
+
+  const scopeLabel = activeRange === "day" ? "this day" : activeRange === "month" ? "this month" : "this week"
+
+  const workerAvailability = workers.map((w) => {
+    const scheduleInRange = schedules.find((s) => {
+      if (s.workerId !== w.id) return false
+      const d = new Date(s.date)
+      return d >= rangeStart && d <= rangeEnd
+    })
+
+    return {
+      ...w,
+      available: !scheduleInRange,
+      project: scheduleInRange
+        ? projects.find((p) => p.id === scheduleInRange.projectId)?.name
+        : null,
+    }
+  })
 
   const linkFor = (a: Date, r: RangeType = activeRange, v: string = activeView) =>
     `/schedule?date=${toParam(a)}&range=${r}&view=${v}`
@@ -232,7 +271,10 @@ export default async function SchedulePage({
       {/* STAFF SIDEBAR + CALENDAR */}
       <div className="flex gap-6 items-start">
 
-        <UnassignedStaffPanel workers={workerAvailability.filter((w) => w.available)} />
+        <UnassignedStaffPanel
+          workers={workerAvailability.filter((w) => w.available)}
+          scopeLabel={scopeLabel}
+        />
 
         {/* CALENDAR */}
         <div className="bg-white rounded-xl shadow overflow-x-auto flex-1">

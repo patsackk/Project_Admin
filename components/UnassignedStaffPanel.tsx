@@ -9,7 +9,13 @@ type Worker = {
   team: string
 }
 
-export default function UnassignedStaffPanel({ workers }: { workers: Worker[] }) {
+export default function UnassignedStaffPanel({
+  workers,
+  scopeLabel = "today",
+}: {
+  workers: Worker[]
+  scopeLabel?: string
+}) {
   const [search, setSearch] = useState("")
 
   const filtered = workers.filter((w) =>
@@ -20,7 +26,10 @@ export default function UnassignedStaffPanel({ workers }: { workers: Worker[] })
     <div className="w-72 shrink-0 bg-gray-50 rounded-xl p-4 h-fit">
       <div className="flex items-center gap-2 mb-4">
         <Users size={18} className="text-sky-600" />
-        <h2 className="font-semibold text-gray-800">Unassigned Staff</h2>
+        <div>
+          <h2 className="font-semibold text-gray-800">Unassigned Staff</h2>
+          <p className="text-xs text-gray-400 capitalize">Free {scopeLabel}</p>
+        </div>
       </div>
 
       <div className="relative mb-4">
@@ -36,7 +45,7 @@ export default function UnassignedStaffPanel({ workers }: { workers: Worker[] })
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-6">
-            {workers.length === 0 ? "Everyone is assigned today." : "No match."}
+            {workers.length === 0 ? `Everyone is assigned ${scopeLabel}.` : "No match."}
           </p>
         ) : (
           filtered.map((w) => (
