@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const servicesData = [
   {
@@ -68,49 +69,32 @@ export default function ServiceDetail({ params }) {
 
   if (!service) {
     return (
-      <div className="container mx-auto text-center py-20">
-        <h1 className="text-4xl font-bold text-red-600">
-          Service Not Found
-        </h1>
-        <p className="text-lg mt-4">
-          The requested service does not exist.
-        </p>
-
-        <Link
-          href="/"
-          className="mt-6 inline-block px-4 py-2 bg-sky-600 text-white rounded-full hover:bg-sky-700 transition"
-        >
-          ← Back to Home
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <h1 className="page-title">Service not found</h1>
+        <p className="text-gray-500 mt-4">The requested service does not exist.</p>
+        <Link href="/" className="btn-primary mt-6">
+          Back to Home
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-16 px-4 lg:px-20">
-
-      {/* Back Button */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1 px-4 py-2 
-                   rounded-full text-sm font-medium
-                   bg-sky-600 text-white
-                   hover:bg-sky-700 
-                   transition duration-200 mb-6"
-      >
-        &lt; Back to Home
+    <div className="max-w-6xl mx-auto px-6 py-10">
+      <Link href="/#services" className="back-link mb-6">
+        <ArrowLeft size={16} />
+        Back to Services
       </Link>
 
-      <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-        
+      <div className="card overflow-hidden">
         {/* Hero Image */}
-        <div className="relative w-full h-[350px]">
+        <div className="relative w-full h-80 md:h-96">
           <img
             src={service.img}
             alt={service.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white text-center px-4">
               {service.name}
             </h1>
@@ -119,28 +103,22 @@ export default function ServiceDetail({ params }) {
 
         {/* Content */}
         <div className="p-8 lg:p-12">
-          <p className="text-gray-700 text-lg leading-relaxed mb-8">
+          <p className="text-gray-600 text-lg leading-relaxed mb-10">
             {service.description}
           </p>
 
-          {/* Gallery Section */}
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-6">
-              Gallery
-            </h3>
+          <h2 className="section-title mb-6">Gallery</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-              {service.gallery.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${service.name} ${index + 1}`}
-                  className="w-full h-56 object-cover rounded-xl shadow-md hover:scale-105 transition-transform duration-300"
-                />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {service.gallery.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`${service.name} ${index + 1}`}
+                className="w-full h-64 object-cover rounded-2xl shadow-sm"
+              />
+            ))}
           </div>
-
         </div>
       </div>
     </div>

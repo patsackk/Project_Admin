@@ -1,112 +1,62 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import toast from "react-hot-toast"
 
 export default function AddEntityModal({
   addProject,
   addWorker,
   defaultType = "project",
   label = "+ Add",
-  buttonClass = "",
 }: any) {
   const [open, setOpen] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [pending, startTransition] = useTransition()
+  const isProject = defaultType === "project"
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      if (defaultType === "project") {
+      if (isProject) {
         await addProject(formData)
       } else {
         await addWorker(formData)
       }
 
       setOpen(false)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 2000)
+      toast.success(isProject ? "Project added" : "Worker added")
     })
   }
 
   return (
     <>
-      {/* BUTTON */}
-      <button
-        onClick={() => setOpen(true)}
-        className={`px-3 py-1.5 rounded-md text-sm transition ${buttonClass}`}
-      >
+      <button onClick={() => setOpen(true)} className="btn-secondary px-4 py-1.5">
         {label}
       </button>
 
-      {/* MODAL */}
       {open && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-          <form
-            action={handleSubmit}
-            className="bg-white p-6 rounded-2xl shadow w-[320px] space-y-4"
-          >
-            <h2 className="text-lg font-semibold">
-              {defaultType === "project" ? "Add Project" : "Add Worker"}
-            </h2>
+        <div className="modal-backdrop">
+          <form action={handleSubmit} className="modal p-6 space-y-4">
+            <h2 className="section-title">{isProject ? "Add Project" : "Add Worker"}</h2>
 
-            {defaultType === "project" ? (
-              <>
-                <input
-                  name="name"
-                  placeholder="Project Name"
-                  className="border p-2 w-full"
-                />
-                <input
-                  name="location"
-                  placeholder="Location"
-                  className="border p-2 w-full"
-                />
+            <div>
+              <label className="label">{isProject ? "Project Name" : "Worker Name"}</label>
+              <input name="name" required className="input" />
+            </div>
+            <div>
+              <label className="label">{isProject ? "Location" : "Team"}</label>
+              <input name={isProject ? "location" : "team"} required className="input" />
+            </div>
 
-                <button
-                  disabled={pending}
-                  className="bg-sky-700 text-white w-full py-2 rounded"
-                >
-                  {pending ? "Adding..." : "Add Project"}
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  name="name"
-                  placeholder="Worker Name"
-                  className="border p-2 w-full"
-                />
-                <input
-                  name="team"
-                  placeholder="Team"
-                  className="border p-2 w-full"
-                />
-
-                <button
-                  disabled={pending}
-                  className="bg-cyan-700 text-white w-full py-2 rounded"
-                >
-                  {pending ? "Adding..." : "Add Worker"}
-                </button>
-              </>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="text-sm text-gray-500"
-            >
-              Cancel
-            </button>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setOpen(false)} className="btn-ghost">
+                Cancel
+              </button>
+              <button disabled={pending} className="btn-primary">
+                {pending ? "Adding..." : isProject ? "Add Project" : "Add Worker"}
+              </button>
+            </div>
           </form>
         </div>
       )}
-
-      {/* SUCCESS POPUP */}
-      {success && (
-  <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg text-sm">
-    🎉 Added successfully!
-  </div>
-)}
     </>
   )
 }

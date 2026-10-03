@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import ReactMarkdown from "react-markdown"
+import { MessageCircle, X } from "lucide-react"
 
 type Message = { role: "user" | "assistant"; content: string }
 
@@ -55,11 +56,11 @@ export default function AdminChatbot() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {open && (
-        <div className="mb-3 w-80 h-96 bg-white rounded-2xl shadow-xl border flex flex-col overflow-hidden">
+        <div className="mb-3 w-80 h-96 bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden">
           <div className="bg-sky-600 text-white px-4 py-3 flex items-center justify-between">
             <span className="font-semibold text-sm">Admin Assistant</span>
-            <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white">
-              ✕
+            <button onClick={() => setOpen(false)} aria-label="Close" className="text-white/80 hover:text-white">
+              <X size={18} />
             </button>
           </div>
 
@@ -87,18 +88,18 @@ export default function AdminChatbot() {
             )}
           </div>
 
-          <div className="border-t p-2 flex gap-2">
+          <div className="border-t border-gray-100 p-2 flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Ask about stock, schedule, finance..."
-              className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              className="input flex-1"
             />
             <button
               onClick={sendMessage}
               disabled={loading}
-              className="bg-sky-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-sky-700 disabled:opacity-50"
+              className="btn-primary px-4"
             >
               Send
             </button>
@@ -108,9 +109,10 @@ export default function AdminChatbot() {
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="bg-sky-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-sky-700 transition"
+        aria-label={open ? "Close assistant" : "Open assistant"}
+        className="bg-sky-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-sky-700 transition"
       >
-        {open ? "✕" : "💬"}
+        {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>
     </div>
   )

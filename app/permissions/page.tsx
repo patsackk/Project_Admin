@@ -74,11 +74,11 @@ export default async function PermissionsPage() {
   const GROUPS = buildGroups(staffFlags)
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="page">
+      <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h1 className="text-xl font-bold">Permissions</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="page-title">Permissions</h1>
+          <p className="page-subtitle">
             {canEdit
               ? "What Admin and Staff can each do in this dashboard. Click a Staff mark to grant or revoke it."
               : "What Admin and Staff can each do in this dashboard."}
@@ -86,21 +86,21 @@ export default async function PermissionsPage() {
         </div>
 
         {currentLevel && (
-          <span className="px-3 py-1.5 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold capitalize">
+          <span className="badge bg-sky-100 text-sky-700 capitalize">
             You're signed in as {currentLevel}
           </span>
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500">
+      <div className="card overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="text-left p-4 font-medium">Action</th>
-              <th className="text-center p-4 font-medium w-28">
+              <th>Action</th>
+              <th className="text-center w-28">
                 <span className={currentLevel === "admin" ? "text-sky-700" : ""}>Admin</span>
               </th>
-              <th className="text-center p-4 font-medium w-28">
+              <th className="text-center w-28">
                 <span className={currentLevel === "staff" ? "text-sky-700" : ""}>Staff</span>
               </th>
             </tr>
@@ -108,18 +108,18 @@ export default async function PermissionsPage() {
           <tbody>
             {GROUPS.map((group) => (
               <Fragment key={group.title}>
-                <tr className="bg-gray-50/60">
+                <tr className="bg-gray-50/60 hover:bg-gray-50/60">
                   <td colSpan={3} className="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     {group.title}
                   </td>
                 </tr>
                 {group.rows.map((row) => (
-                  <tr key={row.action} className="border-t hover:bg-gray-50 transition">
-                    <td className="p-4 text-gray-700">{row.action}</td>
-                    <td className="p-4 text-center">
+                  <tr key={row.action}>
+                    <td className="text-gray-700">{row.action}</td>
+                    <td className="text-center">
                       <Mark allowed={row.admin} />
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="text-center">
                       {canEdit && row.key ? (
                         <PermissionToggle permissionKey={row.key} initialValue={row.staff} />
                       ) : (

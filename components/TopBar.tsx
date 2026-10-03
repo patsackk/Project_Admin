@@ -79,13 +79,13 @@ export default function TopBar({ sidebarOpen, onOpenSidebar }: TopBarProps) {
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="px-4 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition"
+            className="btn-secondary px-4 py-1.5"
           >
             Sign in
           </Link>
           <Link
             href="/register"
-            className="px-4 py-1.5 rounded-full border border-sky-600 bg-sky-600 text-white text-sm hover:bg-sky-700 transition"
+            className="btn-primary px-4 py-1.5"
           >
             Register
           </Link>
@@ -93,7 +93,7 @@ export default function TopBar({ sidebarOpen, onOpenSidebar }: TopBarProps) {
       ) : (
         <div className="flex items-center gap-3">
           {level && (
-            <span className="hidden sm:inline px-3 py-1 rounded-full bg-sky-100 text-xs font-semibold text-sky-700 capitalize">
+            <span className="badge hidden sm:inline-flex bg-sky-100 text-sky-700 capitalize">
               {level}
             </span>
           )}
@@ -105,7 +105,7 @@ export default function TopBar({ sidebarOpen, onOpenSidebar }: TopBarProps) {
           </Link>
           <button
             onClick={handleLogout}
-            className="px-4 py-1.5 rounded-full border border-red-600 bg-red-600 text-white text-sm hover:bg-red-700 transition"
+            className="btn-danger px-4 py-1.5"
           >
             Logout
           </button>

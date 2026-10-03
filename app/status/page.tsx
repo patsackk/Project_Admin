@@ -33,10 +33,10 @@ export default async function StatusPage() {
   }))
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen space-y-6">
+    <div className="page">
       <div>
-        <h1 className="text-xl font-bold">Update Status</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="page-title">Update Status</h1>
+        <p className="page-subtitle">
           Post a new progress update for your client and project milestones.
         </p>
       </div>

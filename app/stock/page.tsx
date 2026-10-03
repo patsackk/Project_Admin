@@ -15,26 +15,26 @@ export default function StockPage() {
   })
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="page">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold">Inventory & Stock</h1>
-        <p className="text-gray-500 text-sm">
+        <h1 className="page-title">Inventory & Stock</h1>
+        <p className="page-subtitle">
           Manage and track installation components and equipment.
         </p>
       </div>
 
       {/* Alerts */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
-          <p className="text-red-600 font-medium">Out of Stock</p>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+          <p className="text-red-700 font-semibold">Out of Stock</p>
           <p className="text-sm text-gray-600">
             Heavy Duty Circuit Breakers are completely depleted.
           </p>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
-          <p className="text-yellow-600 font-medium">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <p className="text-amber-700 font-semibold">
             Low Inventory
           </p>
           <p className="text-sm text-gray-600">
@@ -48,20 +48,16 @@ export default function StockPage() {
         <input
           type="text"
           placeholder="Search item name..."
-          className="border px-4 py-2 rounded-lg w-full md:w-1/3"
+          className="input md:w-1/3"
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {["All", "Electrical", "WaterSup", "AirCon"].map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-1 rounded-full text-sm border ${
-                filter === cat
-                  ? "bg-sky-600 text-white"
-                  : "bg-white text-gray-600"
-              }`}
+              className={`${filter === cat ? "btn-primary" : "btn-secondary"} px-4 py-1.5`}
             >
               {cat}
             </button>
@@ -70,30 +66,30 @@ export default function StockPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500">
+      <div className="card overflow-x-auto">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="text-left p-4">Item Details</th>
-              <th className="text-left p-4">Category</th>
-              <th className="text-left p-4">Status</th>
+              <th>Item Details</th>
+              <th>Category</th>
+              <th>Status</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredItems.map((item) => (
-              <tr key={item.id} className="border-t">
-                <td className="p-4">
-                  <p className="font-medium">{item.name}</p>
+              <tr key={item.id}>
+                <td>
+                  <p className="font-medium text-gray-900">{item.name}</p>
                 </td>
 
-                <td className="p-4">
-                  <span className="bg-gray-100 px-2 py-1 rounded-full text-xs">
+                <td>
+                  <span className="badge bg-gray-100 text-gray-600">
                     {item.category}
                   </span>
                 </td>
 
-                <td className="p-4">
+                <td>
                   <StatusBadge status={item.status} />
                 </td>
               </tr>
@@ -107,11 +103,11 @@ export default function StockPage() {
 
 // ✅ CLEAN STATUS (ONLY 3 TYPES)
 function StatusBadge({ status }: { status: string }) {
-  const base = "px-3 py-1 rounded-full text-xs font-medium"
+  const base = "badge"
 
   if (status === "In Stock") {
     return (
-      <span className={`${base} bg-green-100 text-green-600`}>
+      <span className={`${base} bg-green-100 text-green-700`}>
         In Stock
       </span>
     )
@@ -119,14 +115,14 @@ function StatusBadge({ status }: { status: string }) {
 
   if (status === "Low Stock") {
     return (
-      <span className={`${base} bg-yellow-100 text-yellow-600`}>
+      <span className={`${base} bg-amber-100 text-amber-700`}>
         Low Stock
       </span>
     )
   }
 
   return (
-    <span className={`${base} bg-red-100 text-red-600`}>
+    <span className={`${base} bg-red-100 text-red-700`}>
       Out of Stock
     </span>
   )

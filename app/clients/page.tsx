@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import toast from "react-hot-toast"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -8,7 +10,6 @@ export default function ClientsPage() {
   const [projects, setProjects] = useState<any[]>([])
   const [selectedUserId, setSelectedUserId] = useState("")
   const [selectedProjectId, setSelectedProjectId] = useState("")
-  const [successMessage, setSuccessMessage] = useState<string>("")
   const [search, setSearch] = useState("")
   const [canDelete, setCanDelete] = useState(false)
   const [canMarkDone, setCanMarkDone] = useState(false)
@@ -60,7 +61,7 @@ export default function ClientsPage() {
 
   // Handle create
   const handleCreate = async () => {
-    if (!selectedUserId) return window.alert("Select user first")
+    if (!selectedUserId) return toast.error("Select a client first")
 
     try {
       const res = await fetch("/api/clients", {
@@ -77,10 +78,9 @@ export default function ClientsPage() {
       setClients((prev) => [...prev, newClient])
       setSelectedUserId("")
       setSelectedProjectId("")
-      setSuccessMessage("Client added successfully!")
-      setTimeout(() => setSuccessMessage(""), 2000)
+      toast.success("Client added successfully!")
     } catch (err: any) {
-      window.alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -98,10 +98,9 @@ export default function ClientsPage() {
       const data = await res.json()
       if (!data.success) throw new Error(data.message)
       setClients((prev) => prev.filter((c) => c.id !== id))
-      setSuccessMessage("Client deleted successfully!")
-      setTimeout(() => setSuccessMessage(""), 2000)
+      toast.success("Client deleted successfully!")
     } catch (err: any) {
-      window.alert(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -142,39 +141,25 @@ export default function ClientsPage() {
     // 3. Update UI
     setClients((prev) => prev.filter((c) => c.id !== client.id))
 
-    setSuccessMessage("Project marked as done!")
-    setTimeout(() => setSuccessMessage(""), 2000)
+    toast.success("Project marked as done!")
   } catch (err: any) {
-    alert(err.message)
+    toast.error(err.message)
   }
 }
 
   return (
-    <div className="p-6 space-y-6 relative w-full lg:max-w-[1400px] mx-auto">
-      <h1 className="text-2xl font-semibold">Client Information</h1>
-
-      {/* Success alert */}
-      {successMessage && (
-        <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow">
-          {successMessage}
-        </div>
-      )}
-
-      {/* Search bar */}
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by client name..."
-        className="border p-2 w-full sm:max-w-md rounded mb-4"
-      />
+    <div className="page">
+      <div>
+        <h1 className="page-title">Client Information</h1>
+        <p className="page-subtitle">Link registered users to a project and track them until it is done.</p>
+      </div>
 
       {/* select + add */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="card p-4 flex flex-col sm:flex-row gap-3">
         <select
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
-          className="border px-3 py-2 rounded-lg flex-1"
+          className="input flex-1"
         >
           <option value="">Select Client</option>
           {users.map((u) => (
@@ -187,7 +172,7 @@ export default function ClientsPage() {
         <select
           value={selectedProjectId}
           onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="border px-3 py-2 rounded-lg flex-1"
+          className="input flex-1"
         >
           <option value="">No Project</option>
           {projects.map((p) => (
@@ -199,21 +184,30 @@ export default function ClientsPage() {
 
         <button
           onClick={handleCreate}
-          className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition w-full sm:w-auto"
+          className="btn-primary w-full sm:w-auto"
         >
           + Add Client
         </button>
       </div>
+
+      {/* Search bar */}
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by client name..."
+        className="input sm:max-w-md"
+      />
 
       {/* cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClients.map((c) => (
           <div
             key={c.id}
-            className="relative group p-6 bg-white border rounded-2xl shadow hover:shadow-xl hover:scale-105 transition"
+            className="card relative group p-6 transition hover:shadow-lg"
           >
-            <h2 className="font-bold text-lg">{c.user?.name}</h2>
-            <p className="mt-1 text-sm">
+            <h2 className="font-semibold text-lg text-gray-900">{c.user?.name}</h2>
+            <p className="mt-1 text-sm text-gray-600">
               Project: <span className="font-semibold">{c.project?.name ?? "No Project"}</span>
             </p>
             <p className="text-sm text-gray-600">
@@ -223,17 +217,17 @@ export default function ClientsPage() {
 
             {/* Buttons at bottom */}
             <div className="mt-4 flex gap-2">
-            <a
+            <Link
               href={`/clients/${c.id}`}
-              className="flex-1 bg-sky-500 text-white text-center text-sm px-2 py-1 rounded hover:bg-sky-600 transition"
+              className="btn-primary flex-1 px-3 py-1.5"
             >
               View Details
-            </a>
+            </Link>
 
             {canMarkDone && (
               <button
                 onClick={() => handleDone(c)}
-                className="flex-1 bg-green-500 text-white text-sm px-2 py-1 rounded hover:bg-green-600 transition"
+                className="btn-secondary flex-1 px-3 py-1.5"
               >
                 Done
               </button>
@@ -242,7 +236,7 @@ export default function ClientsPage() {
             {canDelete && (
               <button
                 onClick={() => handleDelete(c.id)}
-                className="flex-1 bg-red-500 text-white text-sm px-2 py-1 rounded hover:bg-red-600 transition"
+                className="btn-danger flex-1 px-3 py-1.5"
               >
                 Delete
               </button>
@@ -250,7 +244,7 @@ export default function ClientsPage() {
           </div>
 
             {/* HOVER POPUP */}
-            <div className="absolute opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gray-800/70 text-white text-xs p-3 rounded-xl top-2 right-2 w-52 shadow-lg pointer-events-none group-hover:pointer-events-auto">
+            <div className="absolute opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gray-900/80 text-white text-xs p-3 rounded-xl top-2 right-2 w-52 shadow-lg pointer-events-none group-hover:pointer-events-auto">
               <p>Email: {c.user?.email}</p>
               <p>Phone: {c.user?.phone || "-"}</p>
               <p>Location: {c.location}</p>
@@ -259,7 +253,7 @@ export default function ClientsPage() {
           </div>
         ))}
         {filteredClients.length === 0 && (
-          <p className="text-gray-500 col-span-full">No client found.</p>
+          <p className="card empty-state col-span-full">No client found.</p>
         )}
       </div>
     </div>

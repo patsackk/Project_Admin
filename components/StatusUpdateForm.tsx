@@ -153,16 +153,16 @@ export default function StatusUpdateForm({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow p-6">
+      <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-700">
+          <h2 className="section-title">
             {editingUpdate ? "Editing Draft" : "Progress Submission Form"}
           </h2>
           {editingUpdate && (
             <button
               type="button"
               onClick={resetForm}
-              className="text-xs text-gray-500 hover:text-gray-700 underline"
+              className="btn-ghost text-xs"
             >
               Cancel edit — start a new update
             </button>
@@ -173,7 +173,7 @@ export default function StatusUpdateForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Client search */}
             <div className="relative">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="label">
                 Select Client
               </label>
               <input
@@ -187,10 +187,10 @@ export default function StatusUpdateForm({
                 onFocus={() => setShowClientOptions(true)}
                 onBlur={() => setTimeout(() => setShowClientOptions(false), 100)}
                 placeholder="Search client database..."
-                className="mt-1 w-full border rounded-lg p-2 text-sm"
+                className="input"
               />
               {showClientOptions && filteredClients.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border rounded-lg shadow-lg">
+                <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg">
                   {filteredClients.map((c) => (
                     <button
                       key={c.id}
@@ -207,13 +207,13 @@ export default function StatusUpdateForm({
 
             {/* Project */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="label">
                 Select Project
               </label>
               <select
                 value={projectId ?? ""}
                 onChange={(e) => setProjectId(e.target.value ? Number(e.target.value) : null)}
-                className="mt-1 w-full border rounded-lg p-2 text-sm"
+                className="input"
               >
                 <option value="">No project</option>
                 {projects.map((p) => (
@@ -226,7 +226,7 @@ export default function StatusUpdateForm({
 
             {/* Status */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="label">
                 Status
               </label>
               <select
@@ -234,7 +234,7 @@ export default function StatusUpdateForm({
                 required
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full border rounded-lg p-2 text-sm"
+                className="input"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>
@@ -246,7 +246,7 @@ export default function StatusUpdateForm({
 
             {/* Percent complete */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label className="label">
                 Percent Complete ({percent}%)
               </label>
               <input
@@ -256,14 +256,14 @@ export default function StatusUpdateForm({
                 max={100}
                 value={percent}
                 onChange={(e) => setPercent(Number(e.target.value))}
-                className="mt-3 w-full accent-sky-600"
+                className="mt-2 w-full accent-sky-600"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="label">
               Detail Notes
             </label>
             <textarea
@@ -273,13 +273,13 @@ export default function StatusUpdateForm({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Describe the specific progress made since the last update. Mention any milestones reached or challenges overcome..."
-              className="mt-1 w-full border rounded-lg p-3 text-sm resize-none"
+              className="input resize-none"
             />
           </div>
 
           {/* Photos */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="label">
               Upload Photos
             </label>
             {keptPhotos.length > 0 && (
@@ -289,7 +289,7 @@ export default function StatusUpdateForm({
                     <img
                       src={src}
                       alt="Existing progress photo"
-                      className="w-full h-16 object-cover rounded-lg border"
+                      className="w-full h-16 object-cover rounded-lg border border-gray-200"
                     />
                     <button
                       type="button"
@@ -312,7 +312,7 @@ export default function StatusUpdateForm({
                 if (fileInputRef.current) fileInputRef.current.files = files
                 handleFiles(files)
               }}
-              className="mt-1 cursor-pointer border-2 border-dashed rounded-xl py-8 text-center hover:bg-gray-50 transition"
+              className="mt-2 cursor-pointer border-2 border-dashed border-gray-300 rounded-2xl py-8 text-center hover:border-sky-400 hover:bg-sky-50/50 transition"
             >
               <input
                 ref={fileInputRef}
@@ -340,12 +340,12 @@ export default function StatusUpdateForm({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-2 border-t">
+          <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               disabled={isPending}
               onClick={() => submit("draft")}
-              className="px-4 py-2 rounded-lg border text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="btn-secondary"
             >
               {isPending && pendingIntent === "draft" ? "Saving..." : "Save Draft"}
             </button>
@@ -353,7 +353,7 @@ export default function StatusUpdateForm({
               type="button"
               disabled={isPending}
               onClick={() => submit("post")}
-              className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm hover:bg-sky-700 disabled:opacity-50"
+              className="btn-primary"
             >
               {isPending && pendingIntent === "post" ? "Posting..." : "Post Update & Notify Client"}
             </button>
@@ -361,8 +361,8 @@ export default function StatusUpdateForm({
         </form>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-1">Recent Status Updates</h2>
+      <div className="card p-6">
+        <h2 className="section-title mb-1">Recent Status Updates</h2>
         <p className="text-xs text-gray-400 mb-4">
           {clientId || projectId
             ? `Showing history for ${[clientQuery || null, selectedProjectName].filter(Boolean).join(" · ")} — drafts are editable, posted updates are locked.`
@@ -372,7 +372,7 @@ export default function StatusUpdateForm({
         {(clientId || projectId) && filteredUpdates.length === 0 ? (
           <p className="text-sm text-gray-400">No updates posted yet for this selection.</p>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-gray-100">
             {filteredUpdates.map((u) => (
               <button
                 key={u.id}
@@ -383,11 +383,11 @@ export default function StatusUpdateForm({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span>{new Date(u.createdAt).toLocaleDateString()}</span>
-                    <span className={`px-2 py-0.5 rounded-full font-semibold ${statusBadgeClass(u.status)}`}>
+                    <span className={`badge ${statusBadgeClass(u.status)}`}>
                       {u.status}
                     </span>
                     {u.isDraft && (
-                      <span className="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">
+                      <span className="badge bg-amber-100 text-amber-700">
                         Draft — click to edit
                       </span>
                     )}
@@ -397,7 +397,7 @@ export default function StatusUpdateForm({
                       </span>
                     )}
                   </div>
-                  <p className="font-semibold text-gray-800 mt-1">
+                  <p className="font-semibold text-gray-900 mt-1">
                     {u.projectName ?? u.clientName ?? "Update"}
                   </p>
                   <p className="text-sm text-gray-600 mt-1 max-w-2xl line-clamp-2">{u.notes}</p>
@@ -419,23 +419,23 @@ export default function StatusUpdateForm({
       {selectedUpdate && (
         <div
           onClick={() => setSelectedUpdate(null)}
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          className="modal-backdrop"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+            className="modal max-w-lg max-h-[85vh] overflow-y-auto"
           >
-            <div className="flex items-start justify-between p-5 border-b">
+            <div className="flex items-start justify-between p-5 border-b border-gray-100">
               <div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>{new Date(selectedUpdate.createdAt).toLocaleDateString()}</span>
                   <span
-                    className={`px-2 py-0.5 rounded-full font-semibold ${statusBadgeClass(selectedUpdate.status)}`}
+                    className={`badge ${statusBadgeClass(selectedUpdate.status)}`}
                   >
                     {selectedUpdate.status}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-800 mt-1">
+                <h3 className="section-title mt-1">
                   {selectedUpdate.projectName ?? selectedUpdate.clientName ?? "Update"}
                 </h3>
                 {selectedUpdate.clientName && selectedUpdate.projectName && (
@@ -452,13 +452,13 @@ export default function StatusUpdateForm({
             </div>
 
             <div className="p-5 space-y-4">
-              <p className="text-xs bg-gray-50 text-gray-500 rounded-lg px-3 py-2">
+              <p className="text-xs bg-gray-50 text-gray-500 rounded-xl px-3 py-2">
                 This update has been posted to the client and can no longer be edited. Post a
                 follow-up update instead if something needs correcting.
               </p>
 
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                <p className="label">
                   Completion
                 </p>
                 <div className="flex items-center gap-3">
@@ -475,7 +475,7 @@ export default function StatusUpdateForm({
               </div>
 
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                <p className="label">
                   Detail Notes
                 </p>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedUpdate.notes}</p>
@@ -483,7 +483,7 @@ export default function StatusUpdateForm({
 
               {selectedUpdate.photos.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  <p className="label">
                     Photos
                   </p>
                   <div className="grid grid-cols-2 gap-2">
@@ -492,7 +492,7 @@ export default function StatusUpdateForm({
                         <img
                           src={src}
                           alt="Progress photo"
-                          className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition"
+                          className="w-full h-32 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition"
                         />
                       </a>
                     ))}

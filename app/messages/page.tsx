@@ -36,10 +36,10 @@ export default function MessagesPage() {
   )
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="page">
       <div>
-        <h1 className="text-2xl font-semibold">Client Communications</h1>
-        <p className="text-sm text-gray-500">Messages submitted through the contact form.</p>
+        <h1 className="page-title">Client Communications</h1>
+        <p className="page-subtitle">Messages submitted through the contact form.</p>
       </div>
 
       <div className="relative max-w-md">
@@ -48,60 +48,60 @@ export default function MessagesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search messages..."
-          className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          className="input pl-9"
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+      <div className="card overflow-hidden">
         {loading ? (
-          <p className="text-sm text-gray-400 p-8 text-center">Loading...</p>
+          <p className="empty-state">Loading...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-gray-400 p-8 text-center">No messages found.</p>
+          <p className="empty-state">No messages found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <th className="text-left p-4 font-medium">Client</th>
-                  <th className="text-left p-4 font-medium">Message</th>
-                  <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Received</th>
-                  <th className="text-left p-4 font-medium"></th>
+                  <th>Client</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Received</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((m) => (
-                  <tr key={m.id} className="border-t hover:bg-gray-50 transition">
-                    <td className="p-4">
+                  <tr key={m.id}>
+                    <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-500">
+                        <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center text-xs font-semibold text-sky-700">
                           {m.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-800">{m.name}</p>
+                          <p className="font-medium text-gray-900">{m.name}</p>
                           <p className="text-xs text-gray-500">{m.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-600 max-w-xs truncate">{m.message}</td>
-                    <td className="p-4">
+                    <td className="text-gray-600 max-w-xs truncate">{m.message}</td>
+                    <td>
                       {m.repliedAt ? (
-                        <span className="text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full">
+                        <span className="badge bg-green-100 text-green-700">
                           Replied
                         </span>
                       ) : (
-                        <span className="text-xs bg-amber-50 text-amber-600 px-2 py-1 rounded-full">
+                        <span className="badge bg-amber-100 text-amber-700">
                           Pending
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-gray-500 text-xs">
+                    <td className="text-gray-500 text-xs">
                       {new Date(m.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="p-4">
+                    <td>
                       <button
                         onClick={() => setActive(m)}
-                        className="flex items-center gap-1 text-sky-600 hover:text-sky-700 text-xs font-medium"
+                        className="btn-secondary px-3 py-1 text-xs"
                       >
                         <Reply size={13} />
                         Reply

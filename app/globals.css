@@ -3,21 +3,100 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #f0f9ff; /* sky-50 — same page background as the client site */
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== SHARED UI =====
+   Same building blocks as the client site (PROJECT/app/globals.css), plus a
+   few dashboard pieces (tables, badges, modals). Change the look here, not
+   in individual pages. */
+@layer components {
+  .page {
+    @apply mx-auto w-full max-w-7xl space-y-6 p-6;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+  .page-subtitle {
+    @apply mt-1 text-sm text-gray-500;
+  }
+  .section-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-sky-600 bg-white px-5 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800;
+  }
+  .link-danger {
+    @apply text-xs font-medium text-red-600 transition hover:text-red-700 hover:underline;
+  }
+  .back-link {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-sky-700 transition hover:text-sky-900;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-gray-700;
+  }
+  .input {
+    @apply w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500;
+  }
+
+  .card {
+    @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  .alert-error {
+    @apply rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600;
+  }
+  .alert-success {
+    @apply rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-600;
+  }
+  .empty-state {
+    @apply p-8 text-center text-sm text-gray-400;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table thead {
+    @apply bg-gray-50 text-gray-500;
+  }
+  .data-table th {
+    @apply p-4 text-left font-medium;
+  }
+  .data-table td {
+    @apply p-4;
+  }
+  .data-table tbody tr {
+    @apply border-t border-gray-100 transition hover:bg-gray-50;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4;
+  }
+  .modal {
+    @apply w-full max-w-md rounded-2xl bg-white shadow-xl;
+  }
 }
 
 html {

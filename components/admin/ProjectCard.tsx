@@ -1,5 +1,6 @@
 "use client"
 
+import { MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function ProjectCard({ project }: any) {
@@ -11,18 +12,19 @@ export default function ProjectCard({ project }: any) {
         if (!project.id) return
         router.push(`/project/${project.id}`)
       }}
-      className="cursor-pointer bg-white p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100"
+      className="card cursor-pointer p-5 transition hover:shadow-lg"
     >
-      <h3 className="text-xl font-semibold text-gray-800">
+      <h3 className="text-lg font-semibold text-gray-900">
         {project.name}
       </h3>
 
-      <p className="text-gray-500 text-sm mt-1">
-        📍 {project.location}
+      <p className="flex items-center gap-1 text-gray-500 text-sm mt-1">
+        <MapPin size={14} />
+        {project.location}
       </p>
 
       <div className="mt-4 flex justify-between items-center">
-        <span className="text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full">
+        <span className="badge bg-green-100 text-green-700">
           Active
         </span>
 

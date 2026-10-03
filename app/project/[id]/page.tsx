@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useParams } from "next/navigation"
+import { ArrowLeft, MapPin } from "lucide-react"
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -19,39 +21,46 @@ export default function ProjectDetailPage() {
     if (id) fetchProject()
   }, [id])
 
-  if (!project) return <p className="p-6">Loading...</p>
+  if (!project) return <p className="page empty-state">Loading...</p>
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="page">
+      <Link href="/" className="back-link">
+        <ArrowLeft size={16} />
+        Back to Dashboard
+      </Link>
+
       {/* HEADER */}
-      <div className="bg-white p-6 rounded-2xl shadow">
-        <h1 className="text-2xl font-bold">{project.name}</h1>
-        <p className="text-gray-500 mt-1">📍 {project.location}</p>
+      <div className="card p-6">
+        <h1 className="page-title">{project.name}</h1>
+        <p className="page-subtitle flex items-center gap-1">
+          <MapPin size={14} />
+          {project.location}
+        </p>
       </div>
 
       {/* TABLE */}
-      <div className="mt-6 bg-white p-6 rounded-2xl shadow">
-        <h2 className="text-lg font-semibold mb-4">
-          Schedule Table
-        </h2>
+      <div className="card overflow-hidden">
+        <h2 className="section-title p-6 pb-4">Schedule Table</h2>
 
         {project.schedules.length === 0 ? (
-          <p className="text-gray-400">No schedules</p>
+          <p className="empty-state">No schedules</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="data-table">
             <thead>
-              <tr className="border-b text-gray-500">
-                <th className="py-2 text-left">Worker</th>
-                <th className="text-left">Team</th>
-                <th className="text-left">Date</th>
-                <th className="text-left">Time</th>
+              <tr>
+                <th>Worker</th>
+                <th>Team</th>
+                <th>Date</th>
+                <th>Time</th>
               </tr>
             </thead>
 
             <tbody>
               {project.schedules.map((s: any) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50">
-                  <td className="py-3">👷 {s.worker.name}</td>
+                <tr key={s.id}>
+                  <td className="font-medium text-gray-900">{s.worker.name}</td>
                   <td>{s.worker.team}</td>
                   <td>
                     {new Date(s.date).toLocaleDateString()}
@@ -63,6 +72,7 @@ export default function ProjectDetailPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

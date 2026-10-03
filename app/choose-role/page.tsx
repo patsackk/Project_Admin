@@ -23,10 +23,10 @@ export default function ChooseRolePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 via-white to-sky-200 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
+    <div className="flex items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md card p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">How are you working today?</h1>
+          <h1 className="text-3xl font-bold text-gray-900">How are you working today?</h1>
           <p className="text-gray-500 mt-2 text-sm">
             Choose a role for this session. You can switch anytime from the menu.
           </p>

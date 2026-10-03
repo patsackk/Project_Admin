@@ -169,20 +169,22 @@ export default async function SchedulePage({
   const gridTemplate = { gridTemplateColumns: `200px repeat(${viewDates.length}, 1fr)` }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen space-y-6">
+    <div className="page max-w-none">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">Schedule System</h1>
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h1 className="page-title">Schedule System</h1>
+          <p className="page-subtitle">Assign workers to projects and see who is free.</p>
+        </div>
 
-       <div className="flex gap-2">
+       <div className="flex flex-wrap gap-2">
   {canAddProject && (
     <AddEntityModal
       addProject={addProject}
       addWorker={addWorker}
       defaultType="project"
       label="+ Add Project"
-      buttonClass="bg-sky-100 text-sky-700 hover:bg-sky-600 hover:text-white"
     />
   )}
 
@@ -192,7 +194,6 @@ export default async function SchedulePage({
       addWorker={addWorker}
       defaultType="worker"
       label="+ Add Worker"
-      buttonClass="bg-cyan-100 text-cyan-700 hover:bg-cyan-600 hover:text-white"
     />
   )}
 
@@ -205,24 +206,26 @@ export default async function SchedulePage({
       </div>
 
       {/* NAVIGATION */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white rounded-xl shadow px-4 py-3">
+      <div className="card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex items-center gap-2">
           <Link
             href={linkFor(prevAnchor)}
-            className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+            aria-label="Previous"
+            className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
           >
             <ChevronLeft size={16} />
           </Link>
           <span className="font-semibold text-sm min-w-[180px] text-center">{rangeLabel}</span>
           <Link
             href={linkFor(nextAnchor)}
-            className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+            aria-label="Next"
+            className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
           >
             <ChevronRight size={16} />
           </Link>
           <Link
             href={linkFor(today)}
-            className="text-sm bg-gray-100 hover:bg-gray-200 transition px-3 py-1.5 rounded-lg"
+            className="btn-secondary px-3 py-1"
           >
             Today
           </Link>
@@ -230,13 +233,13 @@ export default async function SchedulePage({
 
         <div className="flex items-center gap-3">
           {/* DAY / WEEK / MONTH */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 rounded-full p-1">
             {(["day", "week", "month"] as RangeType[]).map((r) => (
               <Link
                 key={r}
                 href={linkFor(anchor, r)}
-                className={`text-sm px-3 py-1 rounded-md capitalize transition ${
-                  activeRange === r ? "bg-white shadow font-medium" : "text-gray-500"
+                className={`text-sm px-3 py-1 rounded-full capitalize transition ${
+                  activeRange === r ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
                 {r}
@@ -246,19 +249,19 @@ export default async function SchedulePage({
 
           {/* PROJECT / WORKER (hidden in month view) */}
           {activeRange !== "month" && (
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-full p-1">
               <Link
                 href={linkFor(anchor, activeRange, "project")}
-                className={`text-sm px-3 py-1 rounded-md transition ${
-                  activeView === "project" ? "bg-white shadow font-medium" : "text-gray-500"
+                className={`text-sm px-3 py-1 rounded-full transition ${
+                  activeView === "project" ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
                 By Project
               </Link>
               <Link
                 href={linkFor(anchor, activeRange, "worker")}
-                className={`text-sm px-3 py-1 rounded-md transition ${
-                  activeView === "worker" ? "bg-white shadow font-medium" : "text-gray-500"
+                className={`text-sm px-3 py-1 rounded-full transition ${
+                  activeView === "worker" ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
                 By Worker
@@ -277,7 +280,7 @@ export default async function SchedulePage({
         />
 
         {/* CALENDAR */}
-        <div className="bg-white rounded-xl shadow overflow-x-auto flex-1">
+        <div className="card overflow-x-auto flex-1">
 
         {activeRange === "month" ? (
           <div>
@@ -361,20 +364,20 @@ export default async function SchedulePage({
           {/* Rows */}
           {activeView === "project" ? (
             projects.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center p-8">No projects yet.</p>
+              <p className="empty-state">No projects yet.</p>
             ) : (
               projects.map((project) => (
               <div key={project.id} className="grid border-b" style={gridTemplate}>
 
                 {/* Project */}
                 <div className="p-4">
-                  <p className="font-semibold">{project.name}</p>
+                  <p className="font-semibold text-gray-900">{project.name}</p>
                   <p className="text-xs text-gray-500">{project.location}</p>
 
                   {canDeleteProject && (
                     <form action={deleteProject}>
                       <input type="hidden" name="id" value={project.id} />
-                      <button className="text-red-500 text-xs mt-2">Delete</button>
+                      <button className="link-danger mt-2">Delete</button>
                     </form>
                   )}
                 </div>
@@ -393,16 +396,16 @@ export default async function SchedulePage({
                           <form key={s.id} action={deleteScheduleById}>
                             <input type="hidden" name="id" value={s.id} />
 
-                            <div className="bg-sky-100 p-2 rounded shadow mb-2">
-                              <p className="text-sm font-semibold">{s.worker.name}</p>
+                            <div className="bg-sky-50 border border-sky-100 p-2 rounded-lg mb-2">
+                              <p className="text-sm font-semibold text-gray-900">{s.worker.name}</p>
 
-                              <div className="flex items-center text-xs gap-1">
+                              <div className="flex items-center text-xs gap-1 text-gray-600">
                                 <Clock size={12} />
                                 {s.startTime} - {s.endTime}
                               </div>
 
                               {canUnassign && (
-                                <button className="text-red-500 text-xs mt-1">
+                                <button className="link-danger mt-1">
                                   Unassign
                                 </button>
                               )}
@@ -421,14 +424,14 @@ export default async function SchedulePage({
               ))
             )
           ) : workers.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center p-8">No workers yet.</p>
+            <p className="empty-state">No workers yet.</p>
           ) : (
             workers.map((worker) => (
             <div key={worker.id} className="grid border-b" style={gridTemplate}>
 
               {/* Worker */}
               <div className="p-4">
-                <p className="font-semibold">{worker.name}</p>
+                <p className="font-semibold text-gray-900">{worker.name}</p>
                 <p className="text-xs text-gray-500">{worker.team}</p>
               </div>
 
@@ -446,16 +449,16 @@ export default async function SchedulePage({
                         <form key={s.id} action={deleteScheduleById}>
                           <input type="hidden" name="id" value={s.id} />
 
-                          <div className="bg-cyan-100 p-2 rounded shadow mb-2">
-                            <p className="text-sm font-semibold">{s.project.name}</p>
+                          <div className="bg-sky-50 border border-sky-100 p-2 rounded-lg mb-2">
+                            <p className="text-sm font-semibold text-gray-900">{s.project.name}</p>
 
-                            <div className="flex items-center text-xs gap-1">
+                            <div className="flex items-center text-xs gap-1 text-gray-600">
                               <Clock size={12} />
                               {s.startTime} - {s.endTime}
                             </div>
 
                             {canUnassign && (
-                              <button className="text-red-500 text-xs mt-1">
+                              <button className="link-danger mt-1">
                                 Unassign
                               </button>
                             )}

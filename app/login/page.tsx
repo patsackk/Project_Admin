@@ -65,12 +65,12 @@ export default function Login() {
   };
 
   return (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-100 via-white to-sky-200 px-4">
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+  <div className="flex items-center justify-center px-4 py-16">
+    <div className="w-full max-w-md card p-8">
       
       {/* Title */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome Back</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
         <p className="text-gray-500 mt-2 text-sm">
           Sign in to continue to <span className="font-semibold">UTO Advance</span>
         </p>
@@ -78,13 +78,13 @@ export default function Login() {
 
       {/* Messages */}
       {error && (
-        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+        <div className="alert-error mb-4">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-600">
+        <div className="alert-success mb-4">
           {success}
         </div>
       )}
@@ -94,7 +94,7 @@ export default function Login() {
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="label">
             Email
           </label>
           <input
@@ -104,13 +104,13 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="input py-3"
           />
         </div>
 
         {/* Password */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="password" className="label">
             Password
           </label>
           <input
@@ -120,7 +120,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="input py-3"
           />
         </div>
 
@@ -129,17 +129,12 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-gradient-to-r from-sky-600 to-sky-800 py-3 text-white text-sm font-semibold shadow hover:opacity-90 transition disabled:opacity-60"
+            className="btn-primary w-full py-3"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </div>
       </form>
-
-      {/* Footer */}
-      <p className="mt-8 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} UTO Advance
-      </p>
     </div>
   </div>
 );

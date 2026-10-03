@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import toast from "react-hot-toast"
 
 export default function AddScheduleModal({ workers, projects, action }: any) {
   const [open, setOpen] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -16,14 +16,14 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
           setError("")
           setOpen(true)
         }}
-        className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-md text-sm hover:bg-sky-600 hover:text-white transition"
+        className="btn-primary px-4 py-1.5"
       >
         + Add Schedule
       </button>
 
       {/* MODAL */}
       {open && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+        <div className="modal-backdrop">
           <form
   onSubmit={async (e) => {
     e.preventDefault()
@@ -42,26 +42,24 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
     }
 
     setOpen(false)
-    setSuccess(true)
-
-    setTimeout(() => setSuccess(false), 2000)
+    toast.success("Schedule added")
   }}
-            className="bg-white p-6 rounded-2xl shadow-xl w-[340px] space-y-4"
+            className="modal p-6 space-y-4"
           >
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="section-title">
               Assign Schedule
             </h2>
 
             {error && (
-              <p className="text-xs bg-red-50 text-red-600 border border-red-200 rounded-lg px-3 py-2">
+              <p className="alert-error">
                 {error}
               </p>
             )}
 
             {/* Worker */}
             <div>
-              <label className="text-xs text-gray-500">Worker</label>
-              <select name="workerId" className="border rounded-lg p-2 w-full mt-1">
+              <label className="label">Worker</label>
+              <select name="workerId" className="input">
                 {workers.map((w: any) => (
                   <option key={w.id} value={w.id}>
                     {w.name}
@@ -72,8 +70,8 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
             {/* Project */}
             <div>
-              <label className="text-xs text-gray-500">Project</label>
-              <select name="projectId" className="border rounded-lg p-2 w-full mt-1">
+              <label className="label">Project</label>
+              <select name="projectId" className="input">
                 {projects.map((p: any) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -84,33 +82,33 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
             {/* Date */}
             <div>
-              <label className="text-xs text-gray-500">Date</label>
+              <label className="label">Date</label>
               <input
                 type="date"
                 name="date"
-                className="border rounded-lg p-2 w-full mt-1"
+                className="input"
               />
             </div>
 
             {/* Time */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500">Start</label>
+                <label className="label">Start</label>
                 <input
                   type="time"
                   name="startTime"
                   defaultValue="08:00"
-                  className="border rounded-lg p-2 w-full mt-1"
+                  className="input"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-gray-500">End</label>
+                <label className="label">End</label>
                 <input
                   type="time"
                   name="endTime"
                   defaultValue="16:00"
-                  className="border rounded-lg p-2 w-full mt-1"
+                  className="input"
                 />
               </div>
             </div>
@@ -120,14 +118,14 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-gray-500 text-sm"
+                className="btn-ghost"
               >
                 Cancel
               </button>
 
               <button
                 disabled={submitting}
-                className="bg-sky-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-sky-700 disabled:opacity-50"
+                className="btn-primary"
               >
                 {submitting ? "Saving..." : "Save"}
               </button>
@@ -136,12 +134,6 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
         </div>
       )}
 
-      {/* SUCCESS POPUP */}
-      {success && (
-  <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg text-sm">
-    🎉 Added successfully!
-  </div>
-)}
     </>
   )
 }
