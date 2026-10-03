@@ -7,6 +7,9 @@ const PUBLIC_PATHS = new Set(["/login", "/register"])
 const PUBLIC_PREFIXES = [
   "/services",
   "/images",
+  // Status-update photos are loaded cross-origin by the client app's
+  // /track page, whose users have no ADMIN session.
+  "/uploads",
   "/api/login",
   "/api/register",
   "/api/contact",

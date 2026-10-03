@@ -51,6 +51,7 @@ export default function StatusUpdateForm({
   const [photoNames, setPhotoNames] = useState<string[]>([])
   const [keptPhotos, setKeptPhotos] = useState<string[]>([])
   const [isPending, startTransition] = useTransition()
+  const [pendingIntent, setPendingIntent] = useState<"draft" | "post" | null>(null)
   const [selectedUpdate, setSelectedUpdate] = useState<UpdateOption | null>(null)
   const [editingUpdate, setEditingUpdate] = useState<UpdateOption | null>(null)
 
@@ -131,8 +132,16 @@ export default function StatusUpdateForm({
       formData.set("keepPhotos", JSON.stringify(keptPhotos))
     }
 
+    setPendingIntent(intent)
     startTransition(async () => {
-      const result = await saveStatusUpdate(formData)
+      let result
+      try {
+        result = await saveStatusUpdate(formData)
+      } catch (error) {
+        console.error("Save Status Update Error:", error)
+        toast.error("Upload failed — try fewer or smaller photos.")
+        return
+      }
       if (!result.success) {
         toast.error(result.error)
         return
@@ -338,7 +347,7 @@ export default function StatusUpdateForm({
               onClick={() => submit("draft")}
               className="px-4 py-2 rounded-lg border text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
-              Save Draft
+              {isPending && pendingIntent === "draft" ? "Saving..." : "Save Draft"}
             </button>
             <button
               type="button"
@@ -346,7 +355,7 @@ export default function StatusUpdateForm({
               onClick={() => submit("post")}
               className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm hover:bg-sky-700 disabled:opacity-50"
             >
-              {isPending ? "Posting..." : "Post Update & Notify Client"}
+              {isPending && pendingIntent === "post" ? "Posting..." : "Post Update & Notify Client"}
             </button>
           </div>
         </form>
