@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { hasAccess } from "@/lib/permissions"
+import { getT } from "@/lib/i18n-server"
 
 // ➕ Add Project (Admin only, unless granted to Staff via /permissions)
 export async function addProject(formData: FormData) {
@@ -66,6 +67,8 @@ export async function addWorker(formData: FormData) {
 
 // ➕ Add Schedule (FIXED SAFE VERSION)
 export async function addSchedule(formData: FormData) {
+  const t = await getT()
+
   try {
     const workerId = Number(formData.get("workerId"))
     const projectId = Number(formData.get("projectId"))
@@ -77,16 +80,16 @@ export async function addSchedule(formData: FormData) {
     const end = new Date(`1970-01-01T${endTime}`)
 
     if (end <= start) {
-      return { success: false, error: "End time must be after start time." }
+      return { success: false, error: t("End time must be after start time.", "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม") }
     }
 
     if (!workerId || !projectId || !dateRaw) {
-      return { success: false, error: "Please fill in worker, project, and date." }
+      return { success: false, error: t("Please fill in worker, project, and date.", "กรุณาเลือกผู้ปฏิบัติงาน โครงการ และวันที่") }
     }
 
     const date = new Date(dateRaw)
     if (isNaN(date.getTime())) {
-      return { success: false, error: "Invalid date." }
+      return { success: false, error: t("Invalid date.", "วันที่ไม่ถูกต้อง") }
     }
 
     const dayStart = new Date(date)
@@ -108,7 +111,10 @@ export async function addSchedule(formData: FormData) {
     if (overlap) {
       return {
         success: false,
-        error: `This worker is already booked on ${overlap.project.name} from ${overlap.startTime} to ${overlap.endTime}.`,
+        error: t(
+          `This worker is already booked on ${overlap.project.name} from ${overlap.startTime} to ${overlap.endTime}.`,
+          `ผู้ปฏิบัติงานนี้มีงานที่ ${overlap.project.name} เวลา ${overlap.startTime} - ${overlap.endTime} แล้ว`
+        ),
       }
     }
 
@@ -126,7 +132,7 @@ export async function addSchedule(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("Add Schedule Error:", error)
-    return { success: false, error: "Something went wrong. Please try again." }
+    return { success: false, error: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }
   }
 }
 

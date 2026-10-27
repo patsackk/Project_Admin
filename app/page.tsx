@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { MapPin } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+import { getT } from "@/lib/i18n-server"
 
 export default async function Home() {
+  const t = await getT()
   const projects = await prisma.project.findMany({
     include: {
       schedules: { include: { worker: true } },
@@ -22,16 +24,16 @@ export default async function Home() {
   return (
     <div className="page">
       <div>
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Overview of every project, who is working on it, and its client.</p>
+        <h1 className="page-title">{t("Dashboard", "แดชบอร์ด")}</h1>
+        <p className="page-subtitle">{t("Overview of every project, who is working on it, and its client.", "ภาพรวมของทุกโครงการ ผู้ที่รับผิดชอบ และลูกค้าของโครงการ")}</p>
       </div>
 
       {/* PROJECTS */}
       <section className="space-y-3">
-        <h2 className="section-title">Projects</h2>
+        <h2 className="section-title">{t("Projects", "โครงการ")}</h2>
 
         {projects.length === 0 ? (
-          <div className="card empty-state">No projects yet.</div>
+          <div className="card empty-state">{t("No projects yet.", "ยังไม่มีโครงการ")}</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {projects.map((p) => (
@@ -43,7 +45,7 @@ export default async function Home() {
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-gray-900 text-sm md:text-base">{p.name}</h3>
                     <span className="badge bg-sky-50 text-sky-700">
-                      {p.schedules.length} scheduled
+                      {t(`${p.schedules.length} scheduled`, `${p.schedules.length} รายการ`)}
                     </span>
                   </div>
                   <p className="flex items-center gap-1 text-xs md:text-sm text-gray-500 mt-1">
@@ -53,7 +55,7 @@ export default async function Home() {
                 </div>
 
                 <Link href={`/project/${p.id}`} className="btn-secondary mt-4 w-full">
-                  View Detail
+                  {t("View Detail", "ดูรายละเอียด")}
                 </Link>
               </div>
             ))}
@@ -64,25 +66,25 @@ export default async function Home() {
       {/* RECENT ACTIVITY */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="section-title">Recent Activity</h2>
+          <h2 className="section-title">{t("Recent Activity", "กิจกรรมล่าสุด")}</h2>
           <Link href="/schedule" className="back-link text-xs">
-            View schedule →
+            {t("View schedule →", "ดูตารางงาน →")}
           </Link>
         </div>
 
         <div className="card overflow-hidden">
           {projectOverview.length === 0 ? (
-            <p className="empty-state">No projects yet.</p>
+            <p className="empty-state">{t("No projects yet.", "ยังไม่มีโครงการ")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Project</th>
-                    <th>Location</th>
-                    <th>Assigned Workers</th>
-                    <th>Client</th>
-                    <th>Schedules</th>
+                    <th>{t("Project", "โครงการ")}</th>
+                    <th>{t("Location", "สถานที่")}</th>
+                    <th>{t("Assigned Workers", "ผู้ปฏิบัติงาน")}</th>
+                    <th>{t("Client", "ลูกค้า")}</th>
+                    <th>{t("Schedules", "ตารางงาน")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -110,19 +112,19 @@ export default async function Home() {
 
       {/* QUICK ACCESS */}
       <section className="space-y-3">
-        <h2 className="section-title">Quick Access</h2>
+        <h2 className="section-title">{t("Quick Access", "เมนูลัด")}</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {[
-            { name: "Schedules", href: "/schedule" },
-            { name: "Stocks", href: "/stock" },
+            { name: t("Schedules", "ตารางงาน"), href: "/schedule" },
+            { name: t("Stocks", "คลังวัสดุ"), href: "/stock" },
           ].map((item) => (
             <div key={item.href} className="card p-5 flex flex-col justify-between transition hover:shadow-lg">
               <h3 className="text-center font-semibold text-sm md:text-base text-sky-700">
                 {item.name}
               </h3>
               <Link href={item.href} className="btn-primary mt-4 w-full">
-                Go to {item.name}
+                {t("Go to ", "ไปที่")}{item.name}
               </Link>
             </div>
           ))}

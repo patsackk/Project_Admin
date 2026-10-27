@@ -13,7 +13,7 @@ export async function GET() {
   if (session?.role === "admin") {
     permissions =
       session.level === "admin"
-        ? { unassignSchedule: true, addProject: true, deleteProject: true, addWorker: true, deleteClient: true, markClientDone: true }
+        ? { unassignSchedule: true, addProject: true, deleteProject: true, addWorker: true, deleteClient: true, markClientDone: true, manageContent: true }
         : await getPermissions()
   }
 

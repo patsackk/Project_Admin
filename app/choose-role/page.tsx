@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ChooseRolePage() {
   const [loading, setLoading] = useState<"admin" | "staff" | null>(null)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const choose = async (level: "admin" | "staff") => {
     setLoading(level)
@@ -26,9 +28,12 @@ export default function ChooseRolePage() {
     <div className="flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md card p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">How are you working today?</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("How are you working today?", "วันนี้คุณทำงานในบทบาทใด?")}</h1>
           <p className="text-gray-500 mt-2 text-sm">
-            Choose a role for this session. You can switch anytime from the menu.
+            {t(
+              "Choose a role for this session. You can switch anytime from the menu.",
+              "เลือกบทบาทสำหรับการใช้งานครั้งนี้ คุณสามารถเปลี่ยนได้ทุกเมื่อจากเมนู"
+            )}
           </p>
         </div>
 
@@ -38,9 +43,12 @@ export default function ChooseRolePage() {
             disabled={loading !== null}
             className="w-full text-left rounded-2xl border-2 border-sky-600 bg-sky-600 text-white p-4 hover:bg-sky-700 transition disabled:opacity-60"
           >
-            <div className="font-semibold">{loading === "admin" ? "Continuing..." : "Admin"}</div>
+            <div className="font-semibold">{loading === "admin" ? t("Continuing...", "กำลังดำเนินการ...") : t("Admin", "ผู้ดูแลระบบ")}</div>
             <div className="text-xs text-sky-100 mt-1">
-              Full access — manage projects, workers, and clients, including deleting records.
+              {t(
+                "Full access — manage projects, workers, and clients, including deleting records.",
+                "สิทธิ์เต็มรูปแบบ — จัดการโครงการ ผู้ปฏิบัติงาน และลูกค้า รวมถึงการลบข้อมูล"
+              )}
             </div>
           </button>
 
@@ -49,10 +57,12 @@ export default function ChooseRolePage() {
             disabled={loading !== null}
             className="w-full text-left rounded-2xl border-2 border-sky-600 bg-white text-sky-700 p-4 hover:bg-sky-50 transition disabled:opacity-60"
           >
-            <div className="font-semibold">{loading === "staff" ? "Continuing..." : "Staff"}</div>
+            <div className="font-semibold">{loading === "staff" ? t("Continuing...", "กำลังดำเนินการ...") : t("Staff", "พนักงาน")}</div>
             <div className="text-xs text-sky-600 mt-1">
-              Day-to-day access — view everything, assign schedules, reply to messages.
-              Can&apos;t delete projects, workers, or clients.
+              {t(
+                "Day-to-day access — view everything, assign schedules, reply to messages. Can't delete projects, workers, or clients.",
+                "สิทธิ์สำหรับงานประจำวัน — ดูข้อมูลทั้งหมด จัดตารางงาน และตอบข้อความ ไม่สามารถลบโครงการ ผู้ปฏิบัติงาน หรือลูกค้าได้"
+              )}
             </div>
           </button>
         </div>

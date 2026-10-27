@@ -6,6 +6,8 @@ import UnassignedStaffPanel from "@/components/UnassignedStaffPanel"
 import { addProject, addWorker, addSchedule, deleteScheduleById, deleteProject } from "../actions"
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { hasAccess } from "@/lib/permissions"
+import { getLang } from "@/lib/i18n-server"
+import { dateLocale, makeT } from "@/lib/i18n"
 
 function getMonday(d: Date) {
   const date = new Date(d)
@@ -67,6 +69,9 @@ export default async function SchedulePage({
   searchParams: Promise<{ date?: string; view?: string; range?: string }>
 }) {
   const { date, view, range } = await searchParams
+  const lang = await getLang()
+  const t = makeT(lang)
+  const locale = dateLocale(lang)
   const [canAddProject, canAddWorker, canDeleteProject, canUnassign] = await Promise.all([
     hasAccess("addProject"),
     hasAccess("addWorker"),
@@ -103,7 +108,7 @@ export default async function SchedulePage({
     viewDates = [anchor]
     prevAnchor = addDays(anchor, -1)
     nextAnchor = addDays(anchor, 1)
-    rangeLabel = anchor.toLocaleDateString("en-US", {
+    rangeLabel = anchor.toLocaleDateString(locale, {
       weekday: "long",
       month: "short",
       day: "numeric",
@@ -125,7 +130,7 @@ export default async function SchedulePage({
 
     prevAnchor = new Date(anchor.getFullYear(), anchor.getMonth() - 1, 1)
     nextAnchor = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1)
-    rangeLabel = anchor.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    rangeLabel = anchor.toLocaleDateString(locale, { month: "long", year: "numeric" })
     rangeStart = startOfDay(firstOfMonth)
     rangeEnd = endOfDay(lastOfMonth)
   } else {
@@ -133,10 +138,10 @@ export default async function SchedulePage({
     viewDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
     prevAnchor = addDays(weekStart, -7)
     nextAnchor = addDays(weekStart, 7)
-    rangeLabel = `${viewDates[0].toLocaleDateString("en-US", {
+    rangeLabel = `${viewDates[0].toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
-    })} – ${viewDates[6].toLocaleDateString("en-US", {
+    })} – ${viewDates[6].toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -145,7 +150,18 @@ export default async function SchedulePage({
     rangeEnd = endOfDay(viewDates[6])
   }
 
-  const scopeLabel = activeRange === "day" ? "this day" : activeRange === "month" ? "this month" : "this week"
+  const scopeLabel =
+    activeRange === "day"
+      ? t("this day", "วันนี้")
+      : activeRange === "month"
+      ? t("this month", "เดือนนี้")
+      : t("this week", "สัปดาห์นี้")
+
+  const rangeNames: Record<RangeType, string> = {
+    day: t("Day", "วัน"),
+    week: t("Week", "สัปดาห์"),
+    month: t("Month", "เดือน"),
+  }
 
   const workerAvailability = workers.map((w) => {
     const scheduleInRange = schedules.find((s) => {
@@ -174,8 +190,8 @@ export default async function SchedulePage({
       {/* HEADER */}
       <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h1 className="page-title">Schedule System</h1>
-          <p className="page-subtitle">Assign workers to projects and see who is free.</p>
+          <h1 className="page-title">{t("Schedule System", "ระบบตารางงาน")}</h1>
+          <p className="page-subtitle">{t("Assign workers to projects and see who is free.", "มอบหมายผู้ปฏิบัติงานให้กับโครงการ และดูว่าใครว่างอยู่")}</p>
         </div>
 
        <div className="flex flex-wrap gap-2">
@@ -184,7 +200,7 @@ export default async function SchedulePage({
       addProject={addProject}
       addWorker={addWorker}
       defaultType="project"
-      label="+ Add Project"
+      label={t("+ Add Project", "+ เพิ่มโครงการ")}
     />
   )}
 
@@ -193,7 +209,7 @@ export default async function SchedulePage({
       addProject={addProject}
       addWorker={addWorker}
       defaultType="worker"
-      label="+ Add Worker"
+      label={t("+ Add Worker", "+ เพิ่มผู้ปฏิบัติงาน")}
     />
   )}
 
@@ -210,7 +226,7 @@ export default async function SchedulePage({
         <div className="flex items-center gap-2">
           <Link
             href={linkFor(prevAnchor)}
-            aria-label="Previous"
+            aria-label={t("Previous", "ก่อนหน้า")}
             className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
           >
             <ChevronLeft size={16} />
@@ -218,7 +234,7 @@ export default async function SchedulePage({
           <span className="font-semibold text-sm min-w-[180px] text-center">{rangeLabel}</span>
           <Link
             href={linkFor(nextAnchor)}
-            aria-label="Next"
+            aria-label={t("Next", "ถัดไป")}
             className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
           >
             <ChevronRight size={16} />
@@ -227,7 +243,7 @@ export default async function SchedulePage({
             href={linkFor(today)}
             className="btn-secondary px-3 py-1"
           >
-            Today
+            {t("Today", "วันนี้")}
           </Link>
         </div>
 
@@ -242,7 +258,7 @@ export default async function SchedulePage({
                   activeRange === r ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
-                {r}
+                {rangeNames[r]}
               </Link>
             ))}
           </div>
@@ -256,7 +272,7 @@ export default async function SchedulePage({
                   activeView === "project" ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
-                By Project
+                {t("By Project", "ตามโครงการ")}
               </Link>
               <Link
                 href={linkFor(anchor, activeRange, "worker")}
@@ -264,7 +280,7 @@ export default async function SchedulePage({
                   activeView === "worker" ? "bg-white shadow-sm font-medium text-sky-700" : "text-gray-500"
                 }`}
               >
-                By Worker
+                {t("By Worker", "ตามผู้ปฏิบัติงาน")}
               </Link>
             </div>
           )}
@@ -285,7 +301,7 @@ export default async function SchedulePage({
         {activeRange === "month" ? (
           <div>
             <div className="grid grid-cols-7 border-b bg-gray-50 text-xs text-gray-500 font-medium">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+              {(t(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], ["จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส.", "อา."])).map((d) => (
                 <div key={d} className="p-2 text-center">{d}</div>
               ))}
             </div>
@@ -324,7 +340,7 @@ export default async function SchedulePage({
                           </p>
                         ))}
                         {daySchedules.length > 3 && (
-                          <p className="text-[10px] text-gray-400">+{daySchedules.length - 3} more</p>
+                          <p className="text-[10px] text-gray-400">{t(`+${daySchedules.length - 3} more`, `+อีก ${daySchedules.length - 3}`)}</p>
                         )}
                       </div>
                     </div>
@@ -339,7 +355,7 @@ export default async function SchedulePage({
         <div className="grid border-b bg-gray-50 text-sm" style={gridTemplate}>
 
           <div className="p-3 font-medium text-gray-700">
-              {activeView === "worker" ? "Workers" : "Projects"}
+              {activeView === "worker" ? t("Workers", "ผู้ปฏิบัติงาน") : t("Projects", "โครงการ")}
           </div>
 
           {viewDates.map((d) => {
@@ -351,7 +367,7 @@ export default async function SchedulePage({
                   isToday ? "bg-sky-50 text-sky-700" : "text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                <div>{d.toLocaleDateString("en-US", { weekday: "short" })}</div>
+                <div>{d.toLocaleDateString(locale, { weekday: "short" })}</div>
                 <div className={`text-sm ${isToday ? "font-bold" : "font-semibold text-gray-700"}`}>
                   {d.getDate()}
                 </div>
@@ -364,7 +380,7 @@ export default async function SchedulePage({
           {/* Rows */}
           {activeView === "project" ? (
             projects.length === 0 ? (
-              <p className="empty-state">No projects yet.</p>
+              <p className="empty-state">{t("No projects yet.", "ยังไม่มีโครงการ")}</p>
             ) : (
               projects.map((project) => (
               <div key={project.id} className="grid border-b" style={gridTemplate}>
@@ -377,7 +393,7 @@ export default async function SchedulePage({
                   {canDeleteProject && (
                     <form action={deleteProject}>
                       <input type="hidden" name="id" value={project.id} />
-                      <button className="link-danger mt-2">Delete</button>
+                      <button className="link-danger mt-2">{t("Delete", "ลบ")}</button>
                     </form>
                   )}
                 </div>
@@ -406,7 +422,7 @@ export default async function SchedulePage({
 
                               {canUnassign && (
                                 <button className="link-danger mt-1">
-                                  Unassign
+                                  {t("Unassign", "ยกเลิกการมอบหมาย")}
                                 </button>
                               )}
                             </div>
@@ -424,7 +440,7 @@ export default async function SchedulePage({
               ))
             )
           ) : workers.length === 0 ? (
-            <p className="empty-state">No workers yet.</p>
+            <p className="empty-state">{t("No workers yet.", "ยังไม่มีผู้ปฏิบัติงาน")}</p>
           ) : (
             workers.map((worker) => (
             <div key={worker.id} className="grid border-b" style={gridTemplate}>
@@ -459,14 +475,14 @@ export default async function SchedulePage({
 
                             {canUnassign && (
                               <button className="link-danger mt-1">
-                                Unassign
+                                {t("Unassign", "ยกเลิกการมอบหมาย")}
                               </button>
                             )}
                           </div>
                         </form>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-400">Free</p>
+                      <p className="text-xs text-gray-400">{t("Free", "ว่าง")}</p>
                     )}
 
                   </div>

@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import toast from "react-hot-toast"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function AddScheduleModal({ workers, projects, action }: any) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const { t } = useLanguage()
 
   return (
     <>
@@ -18,7 +20,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
         }}
         className="btn-primary px-4 py-1.5"
       >
-        + Add Schedule
+        {t("+ Add Schedule", "+ เพิ่มตารางงาน")}
       </button>
 
       {/* MODAL */}
@@ -37,17 +39,17 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
     setSubmitting(false)
 
     if (result?.success === false) {
-      setError(result.error || "Something went wrong.")
+      setError(result.error || t("Something went wrong.", "เกิดข้อผิดพลาด"))
       return
     }
 
     setOpen(false)
-    toast.success("Schedule added")
+    toast.success(t("Schedule added", "เพิ่มตารางงานแล้ว"))
   }}
             className="modal p-6 space-y-4"
           >
             <h2 className="section-title">
-              Assign Schedule
+              {t("Assign Schedule", "มอบหมายตารางงาน")}
             </h2>
 
             {error && (
@@ -58,7 +60,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
             {/* Worker */}
             <div>
-              <label className="label">Worker</label>
+              <label className="label">{t("Worker", "ผู้ปฏิบัติงาน")}</label>
               <select name="workerId" className="input">
                 {workers.map((w: any) => (
                   <option key={w.id} value={w.id}>
@@ -70,7 +72,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
             {/* Project */}
             <div>
-              <label className="label">Project</label>
+              <label className="label">{t("Project", "โครงการ")}</label>
               <select name="projectId" className="input">
                 {projects.map((p: any) => (
                   <option key={p.id} value={p.id}>
@@ -82,7 +84,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
 
             {/* Date */}
             <div>
-              <label className="label">Date</label>
+              <label className="label">{t("Date", "วันที่")}</label>
               <input
                 type="date"
                 name="date"
@@ -93,7 +95,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
             {/* Time */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label">Start</label>
+                <label className="label">{t("Start", "เริ่ม")}</label>
                 <input
                   type="time"
                   name="startTime"
@@ -103,7 +105,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
               </div>
 
               <div>
-                <label className="label">End</label>
+                <label className="label">{t("End", "สิ้นสุด")}</label>
                 <input
                   type="time"
                   name="endTime"
@@ -120,14 +122,14 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
                 onClick={() => setOpen(false)}
                 className="btn-ghost"
               >
-                Cancel
+                {t("Cancel", "ยกเลิก")}
               </button>
 
               <button
                 disabled={submitting}
                 className="btn-primary"
               >
-                {submitting ? "Saving..." : "Save"}
+                {submitting ? t("Saving...", "กำลังบันทึก...") : t("Save", "บันทึก")}
               </button>
             </div>
           </form>

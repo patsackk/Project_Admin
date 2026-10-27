@@ -2,9 +2,11 @@
 
 import { MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ProjectCard({ project }: any) {
   const router = useRouter()
+  const { t } = useLanguage()
 
   return (
     <div
@@ -25,11 +27,11 @@ export default function ProjectCard({ project }: any) {
 
       <div className="mt-4 flex justify-between items-center">
         <span className="badge bg-green-100 text-green-700">
-          Active
+          {t("Active", "ดำเนินการอยู่")}
         </span>
 
         <span className="text-xs text-gray-400">
-          {project.schedules?.length || 0} schedules
+          {t(`${project.schedules?.length || 0} schedules`, `${project.schedules?.length || 0} ตารางงาน`)}
         </span>
       </div>
     </div>

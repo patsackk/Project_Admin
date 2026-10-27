@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -13,6 +14,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("")
   const [canDelete, setCanDelete] = useState(false)
   const [canMarkDone, setCanMarkDone] = useState(false)
+  const { t } = useLanguage()
 
   // Fetch current session (Admin vs Staff) to decide which actions to show
   const fetchSession = async () => {
@@ -61,7 +63,7 @@ export default function ClientsPage() {
 
   // Handle create
   const handleCreate = async () => {
-    if (!selectedUserId) return toast.error("Select a client first")
+    if (!selectedUserId) return toast.error(t("Select a client first", "กรุณาเลือกลูกค้าก่อน"))
 
     try {
       const res = await fetch("/api/clients", {
@@ -73,12 +75,12 @@ export default function ClientsPage() {
           projectId: selectedProjectId ? Number(selectedProjectId) : null,
         }),
       })
-      if (!res.ok) throw new Error("Failed to add client")
+      if (!res.ok) throw new Error(t("Failed to add client", "เพิ่มลูกค้าไม่สำเร็จ"))
       const newClient = await res.json()
       setClients((prev) => [...prev, newClient])
       setSelectedUserId("")
       setSelectedProjectId("")
-      toast.success("Client added successfully!")
+      toast.success(t("Client added successfully!", "เพิ่มลูกค้าเรียบร้อยแล้ว!"))
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -86,7 +88,7 @@ export default function ClientsPage() {
 
   // Handle delete
   const handleDelete = async (id: number) => {
-    const confirmed = window.confirm("Are you sure you want to delete this client?")
+    const confirmed = window.confirm(t("Are you sure you want to delete this client?", "ต้องการลบลูกค้ารายนี้ใช่หรือไม่?"))
     if (!confirmed) return
 
     try {
@@ -98,7 +100,7 @@ export default function ClientsPage() {
       const data = await res.json()
       if (!data.success) throw new Error(data.message)
       setClients((prev) => prev.filter((c) => c.id !== id))
-      toast.success("Client deleted successfully!")
+      toast.success(t("Client deleted successfully!", "ลบลูกค้าเรียบร้อยแล้ว!"))
     } catch (err: any) {
       toast.error(err.message)
     }
@@ -112,7 +114,7 @@ export default function ClientsPage() {
     : clients
 
   const handleDone = async (client: any) => {
-  const confirmed = window.confirm("Mark this project as done?")
+  const confirmed = window.confirm(t("Mark this project as done?", "ทำเครื่องหมายว่าโครงการนี้เสร็จสิ้นแล้วใช่หรือไม่?"))
   if (!confirmed) return
 
   try {
@@ -141,7 +143,7 @@ export default function ClientsPage() {
     // 3. Update UI
     setClients((prev) => prev.filter((c) => c.id !== client.id))
 
-    toast.success("Project marked as done!")
+    toast.success(t("Project marked as done!", "ทำเครื่องหมายโครงการว่าเสร็จสิ้นแล้ว!"))
   } catch (err: any) {
     toast.error(err.message)
   }
@@ -150,8 +152,8 @@ export default function ClientsPage() {
   return (
     <div className="page">
       <div>
-        <h1 className="page-title">Client Information</h1>
-        <p className="page-subtitle">Link registered users to a project and track them until it is done.</p>
+        <h1 className="page-title">{t("Client Information", "ข้อมูลลูกค้า")}</h1>
+        <p className="page-subtitle">{t("Link registered users to a project and track them until it is done.", "เชื่อมผู้ใช้ที่ลงทะเบียนเข้ากับโครงการ และติดตามจนกว่าโครงการจะเสร็จสิ้น")}</p>
       </div>
 
       {/* select + add */}
@@ -161,7 +163,7 @@ export default function ClientsPage() {
           onChange={(e) => setSelectedUserId(e.target.value)}
           className="input flex-1"
         >
-          <option value="">Select Client</option>
+          <option value="">{t("Select Client", "เลือกลูกค้า")}</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -174,7 +176,7 @@ export default function ClientsPage() {
           onChange={(e) => setSelectedProjectId(e.target.value)}
           className="input flex-1"
         >
-          <option value="">No Project</option>
+          <option value="">{t("No Project", "ไม่มีโครงการ")}</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -186,7 +188,7 @@ export default function ClientsPage() {
           onClick={handleCreate}
           className="btn-primary w-full sm:w-auto"
         >
-          + Add Client
+          {t("+ Add Client", "+ เพิ่มลูกค้า")}
         </button>
       </div>
 
@@ -195,7 +197,7 @@ export default function ClientsPage() {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by client name..."
+        placeholder={t("Search by client name...", "ค้นหาด้วยชื่อลูกค้า...")}
         className="input sm:max-w-md"
       />
 
@@ -208,10 +210,10 @@ export default function ClientsPage() {
           >
             <h2 className="font-semibold text-lg text-gray-900">{c.user?.name}</h2>
             <p className="mt-1 text-sm text-gray-600">
-              Project: <span className="font-semibold">{c.project?.name ?? "No Project"}</span>
+              {t("Project: ", "โครงการ: ")}<span className="font-semibold">{c.project?.name ?? t("No Project", "ไม่มีโครงการ")}</span>
             </p>
             <p className="text-sm text-gray-600">
-              Location: {c.location}
+              {t("Location: ", "สถานที่: ")}{c.location}
             </p>
         
 
@@ -221,7 +223,7 @@ export default function ClientsPage() {
               href={`/clients/${c.id}`}
               className="btn-primary flex-1 px-3 py-1.5"
             >
-              View Details
+              {t("View Details", "ดูรายละเอียด")}
             </Link>
 
             {canMarkDone && (
@@ -229,7 +231,7 @@ export default function ClientsPage() {
                 onClick={() => handleDone(c)}
                 className="btn-secondary flex-1 px-3 py-1.5"
               >
-                Done
+                {t("Done", "เสร็จสิ้น")}
               </button>
             )}
 
@@ -238,22 +240,22 @@ export default function ClientsPage() {
                 onClick={() => handleDelete(c.id)}
                 className="btn-danger flex-1 px-3 py-1.5"
               >
-                Delete
+                {t("Delete", "ลบ")}
               </button>
             )}
           </div>
 
             {/* HOVER POPUP */}
             <div className="absolute opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gray-900/80 text-white text-xs p-3 rounded-xl top-2 right-2 w-52 shadow-lg pointer-events-none group-hover:pointer-events-auto">
-              <p>Email: {c.user?.email}</p>
-              <p>Phone: {c.user?.phone || "-"}</p>
-              <p>Location: {c.location}</p>
-              <p>Address: {c.user?.address || "-"}</p>
+              <p>{t("Email: ", "อีเมล: ")}{c.user?.email}</p>
+              <p>{t("Phone: ", "โทรศัพท์: ")}{c.user?.phone || "-"}</p>
+              <p>{t("Location: ", "สถานที่: ")}{c.location}</p>
+              <p>{t("Address: ", "ที่อยู่: ")}{c.user?.address || "-"}</p>
             </div>
           </div>
         ))}
         {filteredClients.length === 0 && (
-          <p className="card empty-state col-span-full">No client found.</p>
+          <p className="card empty-state col-span-full">{t("No client found.", "ไม่พบลูกค้า")}</p>
         )}
       </div>
     </div>

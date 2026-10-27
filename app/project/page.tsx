@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react"
 import ProjectCard from "@/components/admin/ProjectCard"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ProjectPage() {
   const [projects, setProjects] = useState<any[]>([])
+  const { t } = useLanguage()
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -18,7 +20,7 @@ export default function ProjectPage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">Projects</h1>
+      <h1 className="page-title">{t("Projects", "โครงการ")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {projects.map((project) => (

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Send, X, Mail } from "lucide-react"
+import { useLanguage } from "@/components/LanguageProvider"
 
 type ContactMessage = {
   id: number
@@ -25,6 +26,7 @@ export default function QuickResponseModal({
   const [text, setText] = useState(contact.reply ?? "")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
+  const { t } = useLanguage()
 
   const handleSend = async () => {
     if (!text.trim()) return
@@ -40,21 +42,21 @@ export default function QuickResponseModal({
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Failed to save reply.")
+        setError(data.error || t("Failed to save reply.", "บันทึกการตอบกลับไม่สำเร็จ"))
         return
       }
 
       onSent(data)
       onClose()
     } catch {
-      setError("Failed to save reply.")
+      setError(t("Failed to save reply.", "บันทึกการตอบกลับไม่สำเร็จ"))
     } finally {
       setSending(false)
     }
   }
 
   const mailtoHref = `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(
-    "Re: your message to UTO Advance Engineering"
+    t("Re: your message to UTO Advance Engineering", "ตอบกลับ: ข้อความของคุณถึง UTO Advance Engineering")
   )}&body=${encodeURIComponent(text)}`
 
   return (
@@ -64,12 +66,12 @@ export default function QuickResponseModal({
         {/* HEADER */}
         <div className="px-6 py-4 flex items-start justify-between border-b border-gray-100">
           <div>
-            <h2 className="section-title">Quick Response</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Responding to {contact.name}</p>
+            <h2 className="section-title">{t("Quick Response", "ตอบกลับด่วน")}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">{t("Responding to ", "ตอบกลับถึง ")}{contact.name}</p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("Close", "ปิด")}
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition"
           >
             <X size={18} />
@@ -82,7 +84,7 @@ export default function QuickResponseModal({
               {contact.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium">To: {contact.name}</p>
+              <p className="text-sm font-medium">{t("To: ", "ถึง: ")}{contact.name}</p>
               <p className="text-xs text-gray-500">{contact.email}</p>
             </div>
           </div>
@@ -98,24 +100,26 @@ export default function QuickResponseModal({
           )}
 
           <div>
-            <label className="label">Your Message</label>
+            <label className="label">{t("Your Message", "ข้อความของคุณ")}</label>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={6}
-              placeholder="Type your response here..."
+              placeholder={t("Type your response here...", "พิมพ์ข้อความตอบกลับที่นี่...")}
               className="input"
             />
             <p className="text-[11px] text-gray-400 mt-1">
-              "Save Reply" records this internally. "Send via Email" opens your email app
-              with this message ready to send to {contact.email}.
+              {t(
+                `"Save Reply" saves this reply and shows it to the client on the website. "Send via Email" opens your email app with this message ready to send to ${contact.email}.`,
+                `"บันทึกการตอบกลับ" จะบันทึกข้อความนี้และแสดงให้ลูกค้าเห็นบนเว็บไซต์ ส่วน "ส่งทางอีเมล" จะเปิดแอปอีเมลพร้อมข้อความนี้เพื่อส่งถึง ${contact.email}`
+              )}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
           <button onClick={onClose} className="btn-ghost">
-            Cancel
+            {t("Cancel", "ยกเลิก")}
           </button>
           <a
             href={text.trim() ? mailtoHref : undefined}
@@ -128,7 +132,7 @@ export default function QuickResponseModal({
             }`}
           >
             <Mail size={14} />
-            Send via Email
+            {t("Send via Email", "ส่งทางอีเมล")}
           </a>
           <button
             onClick={handleSend}
@@ -136,7 +140,7 @@ export default function QuickResponseModal({
             className="btn-primary"
           >
             <Send size={14} />
-            {sending ? "Saving..." : "Save Reply"}
+            {sending ? t("Saving...", "กำลังบันทึก...") : t("Save Reply", "บันทึกการตอบกลับ")}
           </button>
         </div>
       </div>

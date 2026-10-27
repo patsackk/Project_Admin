@@ -4,6 +4,8 @@ import { useMemo, useRef, useState, useTransition } from "react"
 import toast from "react-hot-toast"
 import { Plus, X } from "lucide-react"
 import { saveStatusUpdate } from "@/app/status/actions"
+import { useLanguage } from "@/components/LanguageProvider"
+import type { Translate } from "@/lib/i18n"
 
 type ClientOption = { id: number; name: string; projectId: number | null }
 type ProjectOption = { id: number; name: string }
@@ -22,6 +24,16 @@ type UpdateOption = {
 }
 
 const STATUS_OPTIONS = ["Not Started", "In Progress", "Completed"]
+
+// Status values are stored in English; translate only for display.
+function statusLabel(status: string, t: Translate) {
+  const labels: Record<string, string> = {
+    "Not Started": t("Not Started", "ยังไม่เริ่ม"),
+    "In Progress": t("In Progress", "กำลังดำเนินการ"),
+    Completed: t("Completed", "เสร็จสมบูรณ์"),
+  }
+  return labels[status] ?? status
+}
 
 function statusBadgeClass(status: string) {
   if (status === "Completed") return "bg-green-100 text-green-700"
@@ -54,6 +66,7 @@ export default function StatusUpdateForm({
   const [pendingIntent, setPendingIntent] = useState<"draft" | "post" | null>(null)
   const [selectedUpdate, setSelectedUpdate] = useState<UpdateOption | null>(null)
   const [editingUpdate, setEditingUpdate] = useState<UpdateOption | null>(null)
+  const { t, locale } = useLanguage()
 
   const filteredClients = useMemo(() => {
     if (!clientQuery.trim()) return clients
@@ -139,14 +152,18 @@ export default function StatusUpdateForm({
         result = await saveStatusUpdate(formData)
       } catch (error) {
         console.error("Save Status Update Error:", error)
-        toast.error("Upload failed — try fewer or smaller photos.")
+        toast.error(t("Upload failed — try fewer or smaller photos.", "อัปโหลดไม่สำเร็จ — ลองลดจำนวนหรือขนาดรูปภาพ"))
         return
       }
       if (!result.success) {
         toast.error(result.error)
         return
       }
-      toast.success(intent === "draft" ? "Draft saved" : "Posted — now visible to the client")
+      toast.success(
+        intent === "draft"
+          ? t("Draft saved", "บันทึกฉบับร่างแล้ว")
+          : t("Posted — now visible to the client", "โพสต์แล้ว — ลูกค้าสามารถดูได้แล้ว")
+      )
       resetForm()
     })
   }
@@ -156,7 +173,7 @@ export default function StatusUpdateForm({
       <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="section-title">
-            {editingUpdate ? "Editing Draft" : "Progress Submission Form"}
+            {editingUpdate ? t("Editing Draft", "กำลังแก้ไขฉบับร่าง") : t("Progress Submission Form", "แบบฟอร์มส่งความคืบหน้า")}
           </h2>
           {editingUpdate && (
             <button
@@ -164,7 +181,7 @@ export default function StatusUpdateForm({
               onClick={resetForm}
               className="btn-ghost text-xs"
             >
-              Cancel edit — start a new update
+              {t("Cancel edit — start a new update", "ยกเลิกการแก้ไข — เริ่มอัปเดตใหม่")}
             </button>
           )}
         </div>
@@ -174,7 +191,7 @@ export default function StatusUpdateForm({
             {/* Client search */}
             <div className="relative">
               <label className="label">
-                Select Client
+                {t("Select Client", "เลือกลูกค้า")}
               </label>
               <input
                 type="text"
@@ -186,7 +203,7 @@ export default function StatusUpdateForm({
                 }}
                 onFocus={() => setShowClientOptions(true)}
                 onBlur={() => setTimeout(() => setShowClientOptions(false), 100)}
-                placeholder="Search client database..."
+                placeholder={t("Search client database...", "ค้นหาลูกค้า...")}
                 className="input"
               />
               {showClientOptions && filteredClients.length > 0 && (
@@ -208,14 +225,14 @@ export default function StatusUpdateForm({
             {/* Project */}
             <div>
               <label className="label">
-                Select Project
+                {t("Select Project", "เลือกโครงการ")}
               </label>
               <select
                 value={projectId ?? ""}
                 onChange={(e) => setProjectId(e.target.value ? Number(e.target.value) : null)}
                 className="input"
               >
-                <option value="">No project</option>
+                <option value="">{t("No project", "ไม่มีโครงการ")}</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -227,7 +244,7 @@ export default function StatusUpdateForm({
             {/* Status */}
             <div>
               <label className="label">
-                Status
+                {t("Status", "สถานะ")}
               </label>
               <select
                 name="status"
@@ -238,7 +255,7 @@ export default function StatusUpdateForm({
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {statusLabel(s, t)}
                   </option>
                 ))}
               </select>
@@ -247,7 +264,7 @@ export default function StatusUpdateForm({
             {/* Percent complete */}
             <div>
               <label className="label">
-                Percent Complete ({percent}%)
+                {t("Percent Complete", "เปอร์เซ็นต์ความคืบหน้า")} ({percent}%)
               </label>
               <input
                 type="range"
@@ -264,7 +281,7 @@ export default function StatusUpdateForm({
           {/* Notes */}
           <div>
             <label className="label">
-              Detail Notes
+              {t("Detail Notes", "รายละเอียดความคืบหน้า")}
             </label>
             <textarea
               name="notes"
@@ -272,7 +289,10 @@ export default function StatusUpdateForm({
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Describe the specific progress made since the last update. Mention any milestones reached or challenges overcome..."
+              placeholder={t(
+                "Describe the specific progress made since the last update. Mention any milestones reached or challenges overcome...",
+                "อธิบายความคืบหน้าตั้งแต่การอัปเดตครั้งล่าสุด รวมถึงเป้าหมายที่สำเร็จหรืออุปสรรคที่แก้ไขได้..."
+              )}
               className="input resize-none"
             />
           </div>
@@ -280,7 +300,7 @@ export default function StatusUpdateForm({
           {/* Photos */}
           <div>
             <label className="label">
-              Upload Photos
+              {t("Upload Photos", "อัปโหลดรูปภาพ")}
             </label>
             {keptPhotos.length > 0 && (
               <div className="mt-2 grid grid-cols-4 gap-2">
@@ -288,13 +308,13 @@ export default function StatusUpdateForm({
                   <div key={src} className="relative group">
                     <img
                       src={src}
-                      alt="Existing progress photo"
+                      alt={t("Existing progress photo", "รูปภาพความคืบหน้าเดิม")}
                       className="w-full h-16 object-cover rounded-lg border border-gray-200"
                     />
                     <button
                       type="button"
                       onClick={() => removeKeptPhoto(src)}
-                      aria-label="Remove photo"
+                      aria-label={t("Remove photo", "ลบรูปภาพ")}
                       className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-gray-800 text-white opacity-0 group-hover:opacity-100 transition"
                     >
                       <X size={12} />
@@ -328,13 +348,19 @@ export default function StatusUpdateForm({
               </div>
               <p className="text-sm font-medium text-gray-700">
                 {photoNames.length > 0
-                  ? `${photoNames.length} new photo${photoNames.length > 1 ? "s" : ""} to add`
-                  : "Drag & drop photos or click to browse"}
+                  ? t(
+                      `${photoNames.length} new photo${photoNames.length > 1 ? "s" : ""} to add`,
+                      `รูปภาพใหม่ ${photoNames.length} รูป`
+                    )
+                  : t("Drag & drop photos or click to browse", "ลากและวางรูปภาพ หรือคลิกเพื่อเลือกไฟล์")}
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 {keptPhotos.length > 0
-                  ? "Adds to the photos above — remove any you no longer want by hovering and tapping the ✕."
-                  : "High-res JPG or PNG, max 10MB each"}
+                  ? t(
+                      "Adds to the photos above — remove any you no longer want by hovering and tapping the ✕.",
+                      "จะเพิ่มต่อจากรูปภาพด้านบน — ลบรูปที่ไม่ต้องการได้โดยวางเมาส์แล้วกด ✕"
+                    )
+                  : t("High-res JPG or PNG, max 10MB each", "ไฟล์ JPG หรือ PNG ความละเอียดสูง ไม่เกิน 10MB ต่อรูป")}
               </p>
             </div>
           </div>
@@ -347,7 +373,7 @@ export default function StatusUpdateForm({
               onClick={() => submit("draft")}
               className="btn-secondary"
             >
-              {isPending && pendingIntent === "draft" ? "Saving..." : "Save Draft"}
+              {isPending && pendingIntent === "draft" ? t("Saving...", "กำลังบันทึก...") : t("Save Draft", "บันทึกฉบับร่าง")}
             </button>
             <button
               type="button"
@@ -355,22 +381,27 @@ export default function StatusUpdateForm({
               onClick={() => submit("post")}
               className="btn-primary"
             >
-              {isPending && pendingIntent === "post" ? "Posting..." : "Post Update & Notify Client"}
+              {isPending && pendingIntent === "post"
+                ? t("Posting...", "กำลังโพสต์...")
+                : t("Post Update & Notify Client", "โพสต์อัปเดตและแจ้งลูกค้า")}
             </button>
           </div>
         </form>
       </div>
 
       <div className="card p-6">
-        <h2 className="section-title mb-1">Recent Status Updates</h2>
+        <h2 className="section-title mb-1">{t("Recent Status Updates", "อัปเดตสถานะล่าสุด")}</h2>
         <p className="text-xs text-gray-400 mb-4">
           {clientId || projectId
-            ? `Showing history for ${[clientQuery || null, selectedProjectName].filter(Boolean).join(" · ")} — drafts are editable, posted updates are locked.`
-            : "Select a client or project above to see its update history."}
+            ? t(
+                `Showing history for ${[clientQuery || null, selectedProjectName].filter(Boolean).join(" · ")} — drafts are editable, posted updates are locked.`,
+                `ประวัติของ ${[clientQuery || null, selectedProjectName].filter(Boolean).join(" · ")} — ฉบับร่างแก้ไขได้ อัปเดตที่โพสต์แล้วแก้ไขไม่ได้`
+              )
+            : t("Select a client or project above to see its update history.", "เลือกลูกค้าหรือโครงการด้านบนเพื่อดูประวัติการอัปเดต")}
         </p>
 
         {(clientId || projectId) && filteredUpdates.length === 0 ? (
-          <p className="text-sm text-gray-400">No updates posted yet for this selection.</p>
+          <p className="text-sm text-gray-400">{t("No updates posted yet for this selection.", "ยังไม่มีการอัปเดตสำหรับรายการที่เลือก")}</p>
         ) : (
           <div className="divide-y divide-gray-100">
             {filteredUpdates.map((u) => (
@@ -382,29 +413,29 @@ export default function StatusUpdateForm({
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{new Date(u.createdAt).toLocaleDateString()}</span>
+                    <span>{new Date(u.createdAt).toLocaleDateString(locale)}</span>
                     <span className={`badge ${statusBadgeClass(u.status)}`}>
-                      {u.status}
+                      {statusLabel(u.status, t)}
                     </span>
                     {u.isDraft && (
                       <span className="badge bg-amber-100 text-amber-700">
-                        Draft — click to edit
+                        {t("Draft — click to edit", "ฉบับร่าง — คลิกเพื่อแก้ไข")}
                       </span>
                     )}
                     {u.photos.length > 0 && (
                       <span className="text-gray-400">
-                        {u.photos.length} photo{u.photos.length > 1 ? "s" : ""}
+                        {t(`${u.photos.length} photo${u.photos.length > 1 ? "s" : ""}`, `${u.photos.length} รูป`)}
                       </span>
                     )}
                   </div>
                   <p className="font-semibold text-gray-900 mt-1">
-                    {u.projectName ?? u.clientName ?? "Update"}
+                    {u.projectName ?? u.clientName ?? t("Update", "อัปเดต")}
                   </p>
                   <p className="text-sm text-gray-600 mt-1 max-w-2xl line-clamp-2">{u.notes}</p>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-gray-500">Completion</p>
+                  <p className="text-xs text-gray-500">{t("Completion", "ความคืบหน้า")}</p>
                   <p className="text-sm font-bold text-sky-700">{u.percentComplete}%</p>
                   <div className="w-32 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
                     <div className="h-full bg-sky-600" style={{ width: `${u.percentComplete}%` }} />
@@ -428,24 +459,24 @@ export default function StatusUpdateForm({
             <div className="flex items-start justify-between p-5 border-b border-gray-100">
               <div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>{new Date(selectedUpdate.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(selectedUpdate.createdAt).toLocaleDateString(locale)}</span>
                   <span
                     className={`badge ${statusBadgeClass(selectedUpdate.status)}`}
                   >
-                    {selectedUpdate.status}
+                    {statusLabel(selectedUpdate.status, t)}
                   </span>
                 </div>
                 <h3 className="section-title mt-1">
-                  {selectedUpdate.projectName ?? selectedUpdate.clientName ?? "Update"}
+                  {selectedUpdate.projectName ?? selectedUpdate.clientName ?? t("Update", "อัปเดต")}
                 </h3>
                 {selectedUpdate.clientName && selectedUpdate.projectName && (
-                  <p className="text-xs text-gray-400 mt-0.5">Client: {selectedUpdate.clientName}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t("Client: ", "ลูกค้า: ")}{selectedUpdate.clientName}</p>
                 )}
               </div>
               <button
                 onClick={() => setSelectedUpdate(null)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition shrink-0"
-                aria-label="Close"
+                aria-label={t("Close", "ปิด")}
               >
                 <X size={18} />
               </button>
@@ -453,13 +484,15 @@ export default function StatusUpdateForm({
 
             <div className="p-5 space-y-4">
               <p className="text-xs bg-gray-50 text-gray-500 rounded-xl px-3 py-2">
-                This update has been posted to the client and can no longer be edited. Post a
-                follow-up update instead if something needs correcting.
+                {t(
+                  "This update has been posted to the client and can no longer be edited. Post a follow-up update instead if something needs correcting.",
+                  "อัปเดตนี้โพสต์ให้ลูกค้าแล้วและแก้ไขไม่ได้ หากต้องการแก้ไข กรุณาโพสต์อัปเดตใหม่แทน"
+                )}
               </p>
 
               <div>
                 <p className="label">
-                  Completion
+                  {t("Completion", "ความคืบหน้า")}
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -476,7 +509,7 @@ export default function StatusUpdateForm({
 
               <div>
                 <p className="label">
-                  Detail Notes
+                  {t("Detail Notes", "รายละเอียดความคืบหน้า")}
                 </p>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedUpdate.notes}</p>
               </div>
@@ -484,14 +517,14 @@ export default function StatusUpdateForm({
               {selectedUpdate.photos.length > 0 && (
                 <div>
                   <p className="label">
-                    Photos
+                    {t("Photos", "รูปภาพ")}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {selectedUpdate.photos.map((src) => (
                       <a key={src} href={src} target="_blank" rel="noopener noreferrer">
                         <img
                           src={src}
-                          alt="Progress photo"
+                          alt={t("Progress photo", "รูปภาพความคืบหน้า")}
                           className="w-full h-32 object-cover rounded-xl border border-gray-200 hover:opacity-90 transition"
                         />
                       </a>

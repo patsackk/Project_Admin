@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Users, Search } from "lucide-react"
+import { useLanguage } from "@/components/LanguageProvider"
 
 type Worker = {
   id: number
@@ -11,12 +12,14 @@ type Worker = {
 
 export default function UnassignedStaffPanel({
   workers,
-  scopeLabel = "today",
+  scopeLabel,
 }: {
   workers: Worker[]
   scopeLabel?: string
 }) {
   const [search, setSearch] = useState("")
+  const { t } = useLanguage()
+  const scope = scopeLabel ?? t("today", "วันนี้")
 
   const filtered = workers.filter((w) =>
     w.name.toLowerCase().includes(search.toLowerCase())
@@ -27,8 +30,8 @@ export default function UnassignedStaffPanel({
       <div className="flex items-center gap-2 mb-4">
         <Users size={18} className="text-sky-600" />
         <div>
-          <h2 className="font-semibold text-gray-900">Unassigned Staff</h2>
-          <p className="text-xs text-gray-400 capitalize">Free {scopeLabel}</p>
+          <h2 className="font-semibold text-gray-900">{t("Unassigned Staff", "พนักงานที่ว่าง")}</h2>
+          <p className="text-xs text-gray-400 capitalize">{t(`Free ${scope}`, `ว่าง${scope}`)}</p>
         </div>
       </div>
 
@@ -37,7 +40,7 @@ export default function UnassignedStaffPanel({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search technicians..."
+          placeholder={t("Search technicians...", "ค้นหาช่าง...")}
           className="input pl-8"
         />
       </div>
@@ -45,7 +48,9 @@ export default function UnassignedStaffPanel({
       <div className="space-y-2">
         {filtered.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-6">
-            {workers.length === 0 ? `Everyone is assigned ${scopeLabel}.` : "No match."}
+            {workers.length === 0
+              ? t(`Everyone is assigned ${scope}.`, `ทุกคนมีงานแล้วใน${scope}`)
+              : t("No match.", "ไม่พบรายชื่อ")}
           </p>
         ) : (
           filtered.map((w) => (

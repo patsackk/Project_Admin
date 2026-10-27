@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Search, Reply } from "lucide-react"
 import QuickResponseModal from "@/components/QuickResponseModal"
+import { NOTIFICATIONS_REFRESH_EVENT } from "@/components/NotificationBell"
+import { useLanguage } from "@/components/LanguageProvider"
 
 type ContactMessage = {
   id: number
@@ -19,6 +21,7 @@ export default function MessagesPage() {
   const [search, setSearch] = useState("")
   const [active, setActive] = useState<ContactMessage | null>(null)
   const [loading, setLoading] = useState(true)
+  const { t, locale } = useLanguage()
 
   useEffect(() => {
     fetch("/api/contact", { cache: "no-store" })
@@ -38,8 +41,8 @@ export default function MessagesPage() {
   return (
     <div className="page">
       <div>
-        <h1 className="page-title">Client Communications</h1>
-        <p className="page-subtitle">Messages submitted through the contact form.</p>
+        <h1 className="page-title">{t("Client Communications", "ข้อความจากลูกค้า")}</h1>
+        <p className="page-subtitle">{t("Messages submitted through the contact form.", "ข้อความที่ส่งผ่านแบบฟอร์มติดต่อ")}</p>
       </div>
 
       <div className="relative max-w-md">
@@ -47,25 +50,25 @@ export default function MessagesPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search messages..."
+          placeholder={t("Search messages...", "ค้นหาข้อความ...")}
           className="input pl-9"
         />
       </div>
 
       <div className="card overflow-hidden">
         {loading ? (
-          <p className="empty-state">Loading...</p>
+          <p className="empty-state">{t("Loading...", "กำลังโหลด...")}</p>
         ) : filtered.length === 0 ? (
-          <p className="empty-state">No messages found.</p>
+          <p className="empty-state">{t("No messages found.", "ไม่พบข้อความ")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Client</th>
-                  <th>Message</th>
-                  <th>Status</th>
-                  <th>Received</th>
+                  <th>{t("Client", "ลูกค้า")}</th>
+                  <th>{t("Message", "ข้อความ")}</th>
+                  <th>{t("Status", "สถานะ")}</th>
+                  <th>{t("Received", "วันที่ได้รับ")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -87,16 +90,16 @@ export default function MessagesPage() {
                     <td>
                       {m.repliedAt ? (
                         <span className="badge bg-green-100 text-green-700">
-                          Replied
+                          {t("Replied", "ตอบกลับแล้ว")}
                         </span>
                       ) : (
                         <span className="badge bg-amber-100 text-amber-700">
-                          Pending
+                          {t("Pending", "รอตอบกลับ")}
                         </span>
                       )}
                     </td>
                     <td className="text-gray-500 text-xs">
-                      {new Date(m.createdAt).toLocaleDateString()}
+                      {new Date(m.createdAt).toLocaleDateString(locale)}
                     </td>
                     <td>
                       <button
@@ -104,7 +107,7 @@ export default function MessagesPage() {
                         className="btn-secondary px-3 py-1 text-xs"
                       >
                         <Reply size={13} />
-                        Reply
+                        {t("Reply", "ตอบกลับ")}
                       </button>
                     </td>
                   </tr>
@@ -119,9 +122,10 @@ export default function MessagesPage() {
         <QuickResponseModal
           contact={active}
           onClose={() => setActive(null)}
-          onSent={(updated) =>
+          onSent={(updated) => {
             setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))
-          }
+            window.dispatchEvent(new Event(NOTIFICATIONS_REFRESH_EVENT))
+          }}
         />
       )}
     </div>

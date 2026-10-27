@@ -3,30 +3,37 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { getT } from "@/lib/i18n-server";
 
-const servicesData = [
+const servicesData = (t) => [
   {
     id: 1,
-    name: "Electrical System",
+    name: t("Electrical System", "ระบบไฟฟ้า"),
     img: "/images/elec.jpg",
-    description:
+    description: t(
       "Our Electrical System services provide reliable and safe installations.",
+      "บริการระบบไฟฟ้าของเรามอบงานติดตั้งที่ปลอดภัยและเชื่อถือได้"
+    ),
     gallery: ["/images/elec2.jpg", "/images/elec3.jpg"],
   },
   {
     id: 2,
-    name: "Water Supply System",
+    name: t("Water Supply System", "ระบบประปา"),
     img: "/images/water.jpg",
-    description:
+    description: t(
       "We ensure clean and efficient water supply systems...",
+      "เราดูแลให้ระบบประปาสะอาดและมีประสิทธิภาพ..."
+    ),
     gallery: ["/images/water2.jpg", "/images/water8.jpg"],
   },
   {
     id: 3,
-    name: "Air Conditioning System",
+    name: t("Air Conditioning System", "ระบบปรับอากาศ"),
     img: "/images/airr.jpg",
-    description:
+    description: t(
       "Our Home System Design service provides safe, efficient, and well-planned system installations for residential buildings.",
+      "บริการออกแบบระบบภายในบ้านของเรามอบงานติดตั้งระบบที่ปลอดภัย มีประสิทธิภาพ และวางแผนอย่างดีสำหรับอาคารที่พักอาศัย"
+    ),
     gallery: [
       "/images/air2.jpg",
       "/images/air3.jpg",
@@ -36,10 +43,12 @@ const servicesData = [
   },
   {
     id: 4,
-    name: "Design and Drafting",
+    name: t("Design and Drafting", "งานออกแบบและเขียนแบบ"),
     img: "/images/design.jpg",
-    description:
+    description: t(
       "Our Design and Drafting services create detailed plans and blueprints tailored to your project's requirements.",
+      "บริการออกแบบและเขียนแบบของเราจัดทำแบบแปลนและพิมพ์เขียวโดยละเอียด ตามความต้องการของโครงการคุณ"
+    ),
     gallery: [
       "/images/design2.jpg",
       "/images/design3.jpg",
@@ -49,10 +58,12 @@ const servicesData = [
   },
   {
     id: 5,
-    name: "Home System Design",
+    name: t("Home System Design", "ออกแบบระบบภายในบ้าน"),
     img: "/images/plan1.jpg",
-    description:
+    description: t(
       "Our Solar Energy System services provide sustainable and energy-efficient solutions for residential and commercial projects.",
+      "บริการระบบพลังงานแสงอาทิตย์ของเรามอบโซลูชันที่ยั่งยืนและประหยัดพลังงาน สำหรับโครงการที่พักอาศัยและเชิงพาณิชย์"
+    ),
     gallery: [
       "/images/plan2.jpg",
       "/images/plan3.jpg",
@@ -61,19 +72,22 @@ const servicesData = [
   },
 ];
 
-export default function ServiceDetail({ params }) {
-  const { id } = params;
-  const service = servicesData.find(
+export default async function ServiceDetail({ params }) {
+  const { id } = await params;
+  const t = await getT();
+  const service = servicesData(t).find(
     (service) => service.id.toString() === id
   );
 
   if (!service) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-20 text-center">
-        <h1 className="page-title">Service not found</h1>
-        <p className="text-gray-500 mt-4">The requested service does not exist.</p>
+        <h1 className="page-title">{t("Service not found", "ไม่พบบริการนี้")}</h1>
+        <p className="text-gray-500 mt-4">
+          {t("The requested service does not exist.", "ไม่มีบริการที่คุณต้องการ")}
+        </p>
         <Link href="/" className="btn-primary mt-6">
-          Back to Home
+          {t("Back to Home", "กลับหน้าแรก")}
         </Link>
       </div>
     );
@@ -83,7 +97,7 @@ export default function ServiceDetail({ params }) {
     <div className="max-w-6xl mx-auto px-6 py-10">
       <Link href="/#services" className="back-link mb-6">
         <ArrowLeft size={16} />
-        Back to Services
+        {t("Back to Services", "กลับไปหน้าบริการ")}
       </Link>
 
       <div className="card overflow-hidden">
@@ -107,7 +121,7 @@ export default function ServiceDetail({ params }) {
             {service.description}
           </p>
 
-          <h2 className="section-title mb-6">Gallery</h2>
+          <h2 className="section-title mb-6">{t("Gallery", "แกลเลอรี")}</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
             {service.gallery.map((image, index) => (

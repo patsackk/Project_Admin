@@ -3,6 +3,8 @@ import { Check, X } from "lucide-react"
 import { getSession } from "@/lib/auth"
 import { getPermissions, PermissionKey } from "@/lib/permissions"
 import PermissionToggle from "@/components/PermissionToggle"
+import { getT } from "@/lib/i18n-server"
+import type { Translate } from "@/lib/i18n"
 
 type Row = {
   action: string
@@ -11,43 +13,57 @@ type Row = {
   key?: PermissionKey // present only for rows an admin can toggle
 }
 
-function buildGroups(staffFlags: Record<PermissionKey, boolean>): { title: string; rows: Row[] }[] {
+function buildGroups(staffFlags: Record<PermissionKey, boolean>, t: Translate): { title: string; rows: Row[] }[] {
   return [
     {
-      title: "Viewing",
+      title: t("Viewing", "การดูข้อมูล"),
       rows: [
-        { action: "View Home, Schedule, Stock, Clients, History, Messages", admin: true, staff: true },
+        { action: t("View Home, Schedule, Stock, Clients, History, Messages", "ดูหน้าหลัก ตารางงาน คลังวัสดุ ลูกค้า ประวัติ และข้อความ"), admin: true, staff: true },
       ],
     },
     {
-      title: "Schedule",
+      title: t("Schedule", "ตารางงาน"),
       rows: [
-        { action: "Add a schedule (assign a worker to a project)", admin: true, staff: true },
-        { action: "Unassign a schedule", admin: true, staff: staffFlags.unassignSchedule, key: "unassignSchedule" },
-        { action: "Add a project", admin: true, staff: staffFlags.addProject, key: "addProject" },
-        { action: "Delete a project", admin: true, staff: staffFlags.deleteProject, key: "deleteProject" },
-        { action: "Add a worker", admin: true, staff: staffFlags.addWorker, key: "addWorker" },
+        { action: t("Add a schedule (assign a worker to a project)", "เพิ่มตารางงาน (มอบหมายผู้ปฏิบัติงานให้โครงการ)"), admin: true, staff: true },
+        { action: t("Unassign a schedule", "ยกเลิกการมอบหมายตารางงาน"), admin: true, staff: staffFlags.unassignSchedule, key: "unassignSchedule" },
+        { action: t("Add a project", "เพิ่มโครงการ"), admin: true, staff: staffFlags.addProject, key: "addProject" },
+        { action: t("Delete a project", "ลบโครงการ"), admin: true, staff: staffFlags.deleteProject, key: "deleteProject" },
+        { action: t("Add a worker", "เพิ่มผู้ปฏิบัติงาน"), admin: true, staff: staffFlags.addWorker, key: "addWorker" },
       ],
     },
     {
-      title: "Clients",
+      title: t("Clients", "ลูกค้า"),
       rows: [
-        { action: "Add a client and link them to a project", admin: true, staff: true },
-        { action: "Edit a client's project/location", admin: true, staff: true },
-        { action: "Delete a client", admin: true, staff: staffFlags.deleteClient, key: "deleteClient" },
-        { action: "Mark a client \"Done\" (archive to history)", admin: true, staff: staffFlags.markClientDone, key: "markClientDone" },
+        { action: t("Add a client and link them to a project", "เพิ่มลูกค้าและเชื่อมกับโครงการ"), admin: true, staff: true },
+        { action: t("Edit a client's project/location", "แก้ไขโครงการ/สถานที่ของลูกค้า"), admin: true, staff: true },
+        { action: t("Delete a client", "ลบลูกค้า"), admin: true, staff: staffFlags.deleteClient, key: "deleteClient" },
+        { action: t("Mark a client \"Done\" (archive to history)", "ทำเครื่องหมายลูกค้าว่า \"เสร็จสิ้น\" (ย้ายไปประวัติ)"), admin: true, staff: staffFlags.markClientDone, key: "markClientDone" },
       ],
     },
     {
-      title: "Messages",
+      title: t("Website", "เว็บไซต์"),
       rows: [
-        { action: "Reply to contact form messages", admin: true, staff: true },
+        {
+          action: t(
+            "Edit client website content (projects, services, home slider)",
+            "แก้ไขเนื้อหาเว็บไซต์ลูกค้า (ผลงาน บริการ ภาพสไลด์หน้าแรก)"
+          ),
+          admin: true,
+          staff: staffFlags.manageContent,
+          key: "manageContent",
+        },
       ],
     },
     {
-      title: "Session",
+      title: t("Messages", "ข้อความ"),
       rows: [
-        { action: "Switch role (Admin ↔ Staff)", admin: true, staff: true },
+        { action: t("Reply to contact form messages", "ตอบกลับข้อความจากแบบฟอร์มติดต่อ"), admin: true, staff: true },
+      ],
+    },
+    {
+      title: t("Session", "เซสชัน"),
+      rows: [
+        { action: t("Switch role (Admin ↔ Staff)", "เปลี่ยนบทบาท (ผู้ดูแลระบบ ↔ พนักงาน)"), admin: true, staff: true },
       ],
     },
   ]
@@ -67,27 +83,35 @@ function Mark({ allowed }: { allowed: boolean }) {
 
 export default async function PermissionsPage() {
   const session = await getSession()
+  const t = await getT()
   const currentLevel = session?.level ?? null
   const canEdit = session?.role === "admin" && currentLevel === "admin"
 
   const staffFlags = await getPermissions()
-  const GROUPS = buildGroups(staffFlags)
+  const GROUPS = buildGroups(staffFlags, t)
 
   return (
     <div className="page">
       <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h1 className="page-title">Permissions</h1>
+          <h1 className="page-title">{t("Permissions", "สิทธิ์การใช้งาน")}</h1>
           <p className="page-subtitle">
             {canEdit
-              ? "What Admin and Staff can each do in this dashboard. Click a Staff mark to grant or revoke it."
-              : "What Admin and Staff can each do in this dashboard."}
+              ? t(
+                  "What Admin and Staff can each do in this dashboard. Click a Staff mark to grant or revoke it.",
+                  "สิ่งที่ผู้ดูแลระบบและพนักงานทำได้ในแดชบอร์ดนี้ คลิกเครื่องหมายในช่องพนักงานเพื่อให้หรือยกเลิกสิทธิ์"
+                )
+              : t(
+                  "What Admin and Staff can each do in this dashboard.",
+                  "สิ่งที่ผู้ดูแลระบบและพนักงานทำได้ในแดชบอร์ดนี้"
+                )}
           </p>
         </div>
 
         {currentLevel && (
           <span className="badge bg-sky-100 text-sky-700 capitalize">
-            You're signed in as {currentLevel}
+            {t("You're signed in as ", "คุณเข้าสู่ระบบในฐานะ")}
+            {currentLevel === "admin" ? t("admin", "ผู้ดูแลระบบ") : t("staff", "พนักงาน")}
           </span>
         )}
       </div>
@@ -96,12 +120,12 @@ export default async function PermissionsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Action</th>
+              <th>{t("Action", "การดำเนินการ")}</th>
               <th className="text-center w-28">
-                <span className={currentLevel === "admin" ? "text-sky-700" : ""}>Admin</span>
+                <span className={currentLevel === "admin" ? "text-sky-700" : ""}>{t("Admin", "ผู้ดูแลระบบ")}</span>
               </th>
               <th className="text-center w-28">
-                <span className={currentLevel === "staff" ? "text-sky-700" : ""}>Staff</span>
+                <span className={currentLevel === "staff" ? "text-sky-700" : ""}>{t("Staff", "พนักงาน")}</span>
               </th>
             </tr>
           </thead>
@@ -135,8 +159,10 @@ export default async function PermissionsPage() {
       </div>
 
       <p className="text-xs text-gray-400">
-        Actions Staff can't do are also hidden from the Staff view elsewhere in the dashboard,
-        and are rejected by the server even if requested directly.
+        {t(
+          "Actions Staff can't do are also hidden from the Staff view elsewhere in the dashboard, and are rejected by the server even if requested directly.",
+          "การดำเนินการที่พนักงานไม่มีสิทธิ์จะถูกซ่อนจากมุมมองของพนักงานในส่วนอื่นของแดชบอร์ด และเซิร์ฟเวอร์จะปฏิเสธแม้จะส่งคำขอโดยตรง"
+        )}
       </p>
     </div>
   )

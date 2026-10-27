@@ -94,6 +94,7 @@ model Permission {
   staffAddWorker        Boolean @default(false)
   staffDeleteClient     Boolean @default(false)
   staffMarkClientDone   Boolean @default(false)
+  staffManageContent    Boolean @default(false)
 
   updatedAt DateTime @updatedAt
 }
@@ -131,4 +132,54 @@ model History {
   completedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+// ================= CLIENT WEBSITE CONTENT =================
+// Managed from the admin dashboard's Website Content page and shown on the
+// client site. Text is stored in both languages; the client site falls back
+// to English when the Thai field is empty. Image paths are either
+// "/images/..." (bundled with both apps) or "/uploads/content/..." (uploaded
+// through the admin app and served from it).
+
+// A finished job shown on the client site's Projects page. Unrelated to
+// Project above, which is an active job that workers get scheduled on.
+model PortfolioProject {
+  id Int @id @default(autoincrement())
+
+  nameEn        String
+  nameTh        String   @default("")
+  locationEn    String   @default("")
+  locationTh    String   @default("")
+  type          String   @default("Residential") // "Residential" | "Commercial"
+  descriptionEn String   @default("")
+  descriptionTh String   @default("")
+  coverImage    String
+  gallery       String[] @default([])
+  sortOrder     Int      @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+model Service {
+  id Int @id @default(autoincrement())
+
+  nameEn        String
+  nameTh        String   @default("")
+  descriptionEn String   @default("")
+  descriptionTh String   @default("")
+  coverImage    String
+  gallery       String[] @default([])
+  sortOrder     Int      @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+// A photo in the client home page's hero slider.
+model HeroSlide {
+  id Int @id @default(autoincrement())
+
+  image     String
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
 }

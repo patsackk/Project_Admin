@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import toast from "react-hot-toast"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function AddEntityModal({
   addProject,
@@ -12,6 +13,7 @@ export default function AddEntityModal({
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const isProject = defaultType === "project"
+  const { t } = useLanguage()
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
@@ -22,7 +24,7 @@ export default function AddEntityModal({
       }
 
       setOpen(false)
-      toast.success(isProject ? "Project added" : "Worker added")
+      toast.success(isProject ? t("Project added", "เพิ่มโครงการแล้ว") : t("Worker added", "เพิ่มผู้ปฏิบัติงานแล้ว"))
     })
   }
 
@@ -35,23 +37,23 @@ export default function AddEntityModal({
       {open && (
         <div className="modal-backdrop">
           <form action={handleSubmit} className="modal p-6 space-y-4">
-            <h2 className="section-title">{isProject ? "Add Project" : "Add Worker"}</h2>
+            <h2 className="section-title">{isProject ? t("Add Project", "เพิ่มโครงการ") : t("Add Worker", "เพิ่มผู้ปฏิบัติงาน")}</h2>
 
             <div>
-              <label className="label">{isProject ? "Project Name" : "Worker Name"}</label>
+              <label className="label">{isProject ? t("Project Name", "ชื่อโครงการ") : t("Worker Name", "ชื่อผู้ปฏิบัติงาน")}</label>
               <input name="name" required className="input" />
             </div>
             <div>
-              <label className="label">{isProject ? "Location" : "Team"}</label>
+              <label className="label">{isProject ? t("Location", "สถานที่") : t("Team", "ทีม")}</label>
               <input name={isProject ? "location" : "team"} required className="input" />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setOpen(false)} className="btn-ghost">
-                Cancel
+                {t("Cancel", "ยกเลิก")}
               </button>
               <button disabled={pending} className="btn-primary">
-                {pending ? "Adding..." : isProject ? "Add Project" : "Add Worker"}
+                {pending ? t("Adding...", "กำลังเพิ่ม...") : isProject ? t("Add Project", "เพิ่มโครงการ") : t("Add Worker", "เพิ่มผู้ปฏิบัติงาน")}
               </button>
             </div>
           </form>

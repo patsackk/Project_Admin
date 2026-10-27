@@ -5,6 +5,7 @@ import { Check, X } from "lucide-react"
 import toast from "react-hot-toast"
 import { updateStaffPermission } from "@/app/permissions/actions"
 import type { PermissionKey } from "@/lib/permissions"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function PermissionToggle({
   permissionKey,
@@ -15,6 +16,7 @@ export default function PermissionToggle({
 }) {
   const [value, setValue] = useState(initialValue)
   const [isPending, startTransition] = useTransition()
+  const { t } = useLanguage()
 
   const toggle = () => {
     const next = !value
@@ -22,10 +24,10 @@ export default function PermissionToggle({
     startTransition(async () => {
       try {
         await updateStaffPermission(permissionKey, next)
-        toast.success(next ? "Granted to Staff" : "Revoked from Staff")
+        toast.success(next ? t("Granted to Staff", "ให้สิทธิ์พนักงานแล้ว") : t("Revoked from Staff", "ยกเลิกสิทธิ์พนักงานแล้ว"))
       } catch {
         setValue(!next) // revert on failure
-        toast.error("Couldn't save that change")
+        toast.error(t("Couldn't save that change", "บันทึกการเปลี่ยนแปลงไม่สำเร็จ"))
       }
     })
   }

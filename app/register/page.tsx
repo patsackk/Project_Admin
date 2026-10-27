@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/LanguageProvider';
 
 type RegisterFormData = {
   name: string;
@@ -19,9 +20,11 @@ export default function RegisterPage() {
 });
 
   const [message, setMessage] = useState<string>('');
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const router = useRouter();
+  const { t } = useLanguage();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,8 +49,9 @@ export default function RegisterPage() {
 
       const data = await response.json();
 
+      setIsSuccess(response.ok);
       if (response.ok) {
-        setMessage('Registration successful!');
+        setMessage(t('Registration successful!', 'ลงทะเบียนสำเร็จ!'));
         setFormData({
               name: '',
               email: '',
@@ -55,11 +59,12 @@ export default function RegisterPage() {
               address: '',
             });
       } else {
-        setMessage(data.message || 'Registration failed.');
+        setMessage(data.message || t('Registration failed.', 'ลงทะเบียนไม่สำเร็จ'));
       }
     } catch (error) {
       console.error('Error during registration:', error);
-      setMessage('An unexpected error occurred.');
+      setIsSuccess(false);
+      setMessage(t('An unexpected error occurred.', 'เกิดข้อผิดพลาดที่ไม่คาดคิด'));
     } finally {
       setIsLoading(false);
     }
@@ -76,17 +81,20 @@ export default function RegisterPage() {
       {/* Title */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Register Your Details
+          {t('Register Your Details', 'ลงทะเบียนข้อมูลของคุณ')}
         </h1>
         <p className="text-gray-500 mt-2 text-sm">
-          Tell <span className="font-semibold">UTO Advance</span> about yourself and our team will be in touch
+          {t(
+            <>Tell <span className="font-semibold">UTO Advance</span> about yourself and our team will be in touch</>,
+            <>แจ้งข้อมูลของคุณให้ <span className="font-semibold">UTO Advance</span> ทราบ แล้วทีมงานจะติดต่อกลับ</>
+          )}
         </p>
       </div>
 
       {/* Message */}
       {message && (
         <div
-          className={`mb-5 ${message.includes('successful') ? 'alert-success' : 'alert-error'}`}
+          className={`mb-5 ${isSuccess ? 'alert-success' : 'alert-error'}`}
         >
           {message}
         </div>
@@ -98,14 +106,14 @@ export default function RegisterPage() {
         {/* Name */}
         <div>
           <label className="label">
-            Full Name
+            {t('Full Name', 'ชื่อ-นามสกุล')}
           </label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Your name"
+            placeholder={t('Your name', 'ชื่อของคุณ')}
             required
             className="input py-3"
           />
@@ -114,7 +122,7 @@ export default function RegisterPage() {
         {/* Email */}
         <div>
           <label className="label">
-            Email
+            {t('Email', 'อีเมล')}
           </label>
           <input
             type="email"
@@ -130,14 +138,14 @@ export default function RegisterPage() {
         {/* Phone */}
           <div>
             <label className="label">
-              Phone
+              {t('Phone', 'เบอร์โทรศัพท์')}
             </label>
             <input
               type="text"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Your phone number"
+              placeholder={t('Your phone number', 'เบอร์โทรศัพท์ของคุณ')}
               className="input py-3"
             />
           </div>
@@ -145,14 +153,14 @@ export default function RegisterPage() {
           {/* Address */}
           <div>
             <label className="label">
-              Address
+              {t('Address', 'ที่อยู่')}
             </label>
             <input
               type="text"
               name="address"
               value={formData.address}
               onChange={handleChange}
-              placeholder="Your address"
+              placeholder={t('Your address', 'ที่อยู่ของคุณ')}
               className="input py-3"
             />
           </div>
@@ -164,7 +172,7 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="btn-primary w-full py-3"
           >
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isLoading ? t('Submitting...', 'กำลังส่ง...') : t('Submit', 'ส่งข้อมูล')}
           </button>
 
           <button
@@ -172,7 +180,7 @@ export default function RegisterPage() {
             onClick={handleBackToHome}
             className="btn-secondary w-full py-3"
           >
-            Back to Login
+            {t('Back to Login', 'กลับไปหน้าเข้าสู่ระบบ')}
           </button>
         </div>
       </form>

@@ -21,4 +21,5 @@ export async function updateStaffPermission(key: PermissionKey, value: boolean) 
   revalidatePath("/permissions")
   revalidatePath("/schedule")
   revalidatePath("/clients")
+  revalidatePath("/content")
 }

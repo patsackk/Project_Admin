@@ -4,12 +4,14 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ArrowLeft, MapPin } from "lucide-react"
+import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ProjectDetailPage() {
   const params = useParams()
   const id = params.id
 
   const [project, setProject] = useState<any>(null)
+  const { t, locale } = useLanguage()
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -21,13 +23,13 @@ export default function ProjectDetailPage() {
     if (id) fetchProject()
   }, [id])
 
-  if (!project) return <p className="page empty-state">Loading...</p>
+  if (!project) return <p className="page empty-state">{t("Loading...", "กำลังโหลด...")}</p>
 
   return (
     <div className="page">
       <Link href="/" className="back-link">
         <ArrowLeft size={16} />
-        Back to Dashboard
+        {t("Back to Dashboard", "กลับไปแดชบอร์ด")}
       </Link>
 
       {/* HEADER */}
@@ -41,19 +43,19 @@ export default function ProjectDetailPage() {
 
       {/* TABLE */}
       <div className="card overflow-hidden">
-        <h2 className="section-title p-6 pb-4">Schedule Table</h2>
+        <h2 className="section-title p-6 pb-4">{t("Schedule Table", "ตารางงาน")}</h2>
 
         {project.schedules.length === 0 ? (
-          <p className="empty-state">No schedules</p>
+          <p className="empty-state">{t("No schedules", "ไม่มีตารางงาน")}</p>
         ) : (
           <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Worker</th>
-                <th>Team</th>
-                <th>Date</th>
-                <th>Time</th>
+                <th>{t("Worker", "ผู้ปฏิบัติงาน")}</th>
+                <th>{t("Team", "ทีม")}</th>
+                <th>{t("Date", "วันที่")}</th>
+                <th>{t("Time", "เวลา")}</th>
               </tr>
             </thead>
 
@@ -63,7 +65,7 @@ export default function ProjectDetailPage() {
                   <td className="font-medium text-gray-900">{s.worker.name}</td>
                   <td>{s.worker.team}</td>
                   <td>
-                    {new Date(s.date).toLocaleDateString()}
+                    {new Date(s.date).toLocaleDateString(locale)}
                   </td>
                   <td>
                     {s.startTime} - {s.endTime}

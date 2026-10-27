@@ -5,6 +5,7 @@ import path from "path"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { getT } from "@/lib/i18n-server"
 
 // Photos are written to /public/uploads/status. That only persists on a
 // host with a writable, persistent filesystem (fine for this dev setup /
@@ -22,8 +23,12 @@ export type SaveStatusUpdateResult =
 // can't be silently rewritten; post a follow-up update instead.
 export async function saveStatusUpdate(formData: FormData): Promise<SaveStatusUpdateResult> {
   const session = await getSession()
+  const t = await getT()
   if (session?.role !== "admin") {
-    return { success: false, error: "You must be signed in as staff to post an update." }
+    return {
+      success: false,
+      error: t("You must be signed in as staff to post an update.", "ต้องเข้าสู่ระบบในฐานะพนักงานจึงจะโพสต์อัปเดตได้"),
+    }
   }
 
   const id = formData.get("id")?.toString()
@@ -34,18 +39,21 @@ export async function saveStatusUpdate(formData: FormData): Promise<SaveStatusUp
   const notes = formData.get("notes")?.toString().trim()
   const intent = formData.get("intent")?.toString() // "draft" | "post"
 
-  if (!status) return { success: false, error: "Please choose a status." }
-  if (!notes) return { success: false, error: "Please describe the progress made." }
+  if (!status) return { success: false, error: t("Please choose a status.", "กรุณาเลือกสถานะ") }
+  if (!notes) return { success: false, error: t("Please describe the progress made.", "กรุณาอธิบายความคืบหน้าของงาน") }
   if (!clientId && !projectId) {
-    return { success: false, error: "Please select a client or a project." }
+    return { success: false, error: t("Please select a client or a project.", "กรุณาเลือกลูกค้าหรือโครงการ") }
   }
 
   let existing = null
   if (id) {
     existing = await prisma.statusUpdate.findUnique({ where: { id: Number(id) } })
-    if (!existing) return { success: false, error: "This update no longer exists." }
+    if (!existing) return { success: false, error: t("This update no longer exists.", "ไม่พบอัปเดตนี้แล้ว") }
     if (!existing.isDraft) {
-      return { success: false, error: "Posted updates can't be edited — post a follow-up instead." }
+      return {
+        success: false,
+        error: t("Posted updates can't be edited — post a follow-up instead.", "อัปเดตที่โพสต์แล้วแก้ไขไม่ได้ — กรุณาโพสต์อัปเดตใหม่แทน"),
+      }
     }
   }
 
@@ -99,7 +107,7 @@ export async function saveStatusUpdate(formData: FormData): Promise<SaveStatusUp
     }
   } catch (error) {
     console.error("Save Status Update Error:", error)
-    return { success: false, error: "Something went wrong. Please try again." }
+    return { success: false, error: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }
   }
 
   revalidatePath("/status")
