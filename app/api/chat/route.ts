@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { stockItems } from "@/lib/stockData"
+import { HIDDEN_CATEGORY, stockStatus } from "@/lib/stock"
 
 const AI_BASE_URL = process.env.AI_BASE_URL ?? "https://ai.psu.blue/v1"
 const AI_MODEL = process.env.AI_MODEL ?? "openai/gpt-5.6-luna"
@@ -39,11 +39,21 @@ export async function POST(req: Request) {
     time: `${s.startTime}-${s.endTime}`,
   }))
 
-  const stockSummary = stockItems.map((i) => ({
-    name: i.name,
-    category: i.category,
-    status: i.status,
-  }))
+  // Warehouse stock on hand = sum of each tracked item's movements.
+  const stockSums = await prisma.stockMovement.groupBy({ by: ["itemId"], _sum: { delta: true } })
+  const stockOnHand = new Map(stockSums.map((s) => [s.itemId, s._sum.delta ?? 0]))
+  const trackedStock = await prisma.stockItem.findMany({
+    where: { id: { in: [...stockOnHand.keys()] }, category: { not: HIDDEN_CATEGORY } },
+  })
+  const stockSummary = trackedStock.map((i) => {
+    const onHand = stockOnHand.get(i.id) ?? 0
+    return {
+      name: [i.nameEn || i.name, i.brand, i.color].filter(Boolean).join(" "),
+      category: i.category,
+      onHand: `${onHand} ${i.unit}`,
+      status: stockStatus(onHand, i.minQty),
+    }
+  })
 
   const projectSummary = projects.map((p) => ({
     name: p.name,

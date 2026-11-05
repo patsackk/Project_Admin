@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import toast from "react-hot-toast"
 import { Send, X, Mail } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
 
@@ -24,40 +25,43 @@ export default function QuickResponseModal({
   onSent: (updated: ContactMessage) => void
 }) {
   const [text, setText] = useState(contact.reply ?? "")
-  const [sending, setSending] = useState(false)
+  const [sending, setSending] = useState<"save" | "email" | null>(null)
   const [error, setError] = useState("")
   const { t } = useLanguage()
 
-  const handleSend = async () => {
+  const handleSend = async (sendEmail: boolean) => {
     if (!text.trim()) return
-    setSending(true)
+    setSending(sendEmail ? "email" : "save")
     setError("")
 
     try {
       const res = await fetch(`/api/contact/${contact.id}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, sendEmail }),
       })
       const data = await res.json()
+
+      // The reply can be saved even when the email fails; keep the list in sync.
+      if (data.contact) onSent(data.contact)
 
       if (!res.ok) {
         setError(data.error || t("Failed to save reply.", "บันทึกการตอบกลับไม่สำเร็จ"))
         return
       }
 
-      onSent(data)
+      toast.success(
+        data.emailSent
+          ? t(`Reply saved and emailed to ${contact.email}`, `บันทึกและส่งอีเมลถึง ${contact.email} แล้ว`)
+          : t("Reply saved", "บันทึกการตอบกลับแล้ว")
+      )
       onClose()
     } catch {
       setError(t("Failed to save reply.", "บันทึกการตอบกลับไม่สำเร็จ"))
     } finally {
-      setSending(false)
+      setSending(null)
     }
   }
-
-  const mailtoHref = `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(
-    t("Re: your message to UTO Advance Engineering", "ตอบกลับ: ข้อความของคุณถึง UTO Advance Engineering")
-  )}&body=${encodeURIComponent(text)}`
 
   return (
     <div className="modal-backdrop">
@@ -110,8 +114,8 @@ export default function QuickResponseModal({
             />
             <p className="text-[11px] text-gray-400 mt-1">
               {t(
-                `"Save Reply" saves this reply and shows it to the client on the website. "Send via Email" opens your email app with this message ready to send to ${contact.email}.`,
-                `"บันทึกการตอบกลับ" จะบันทึกข้อความนี้และแสดงให้ลูกค้าเห็นบนเว็บไซต์ ส่วน "ส่งทางอีเมล" จะเปิดแอปอีเมลพร้อมข้อความนี้เพื่อส่งถึง ${contact.email}`
+                `"Save Reply" shows this reply to the client on the website. "Save & Send Email" also emails it to ${contact.email}.`,
+                `"บันทึกการตอบกลับ" จะแสดงข้อความนี้ให้ลูกค้าเห็นบนเว็บไซต์ ส่วน "บันทึกและส่งอีเมล" จะส่งอีเมลถึง ${contact.email} ด้วย`
               )}
             </p>
           </div>
@@ -121,26 +125,21 @@ export default function QuickResponseModal({
           <button onClick={onClose} className="btn-ghost">
             {t("Cancel", "ยกเลิก")}
           </button>
-          <a
-            href={text.trim() ? mailtoHref : undefined}
-            aria-disabled={!text.trim()}
-            onClick={(e) => {
-              if (!text.trim()) e.preventDefault()
-            }}
-            className={`btn-secondary ${
-              !text.trim() ? "opacity-50 pointer-events-none" : ""
-            }`}
-          >
-            <Mail size={14} />
-            {t("Send via Email", "ส่งทางอีเมล")}
-          </a>
           <button
-            onClick={handleSend}
-            disabled={sending || !text.trim()}
-            className="btn-primary"
+            onClick={() => handleSend(false)}
+            disabled={sending !== null || !text.trim()}
+            className="btn-secondary"
           >
             <Send size={14} />
-            {sending ? t("Saving...", "กำลังบันทึก...") : t("Save Reply", "บันทึกการตอบกลับ")}
+            {sending === "save" ? t("Saving...", "กำลังบันทึก...") : t("Save Reply", "บันทึกการตอบกลับ")}
+          </button>
+          <button
+            onClick={() => handleSend(true)}
+            disabled={sending !== null || !text.trim()}
+            className="btn-primary"
+          >
+            <Mail size={14} />
+            {sending === "email" ? t("Sending...", "กำลังส่ง...") : t("Save & Send Email", "บันทึกและส่งอีเมล")}
           </button>
         </div>
       </div>

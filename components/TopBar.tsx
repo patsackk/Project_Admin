@@ -8,6 +8,7 @@ import { PanelLeftOpen } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import LanguageToggle from '@/components/LanguageToggle';
 import { useLanguage } from '@/components/LanguageProvider';
+import Tooltip from '@/components/Tooltip';
 
 type TopBarProps = {
   sidebarOpen: boolean;
@@ -68,13 +69,15 @@ export default function TopBar({ sidebarOpen, onOpenSidebar }: TopBarProps) {
     <div className="sticky top-0 z-20 flex items-center justify-between gap-3 bg-white/90 backdrop-blur border-b px-4 py-2.5">
       <div className="flex items-center gap-3">
         {!sidebarOpen && (
-          <button
-            onClick={onOpenSidebar}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-sky-100 transition"
-            aria-label={t('Show sidebar', 'แสดงแถบด้านข้าง')}
-          >
-            <PanelLeftOpen size={18} />
-          </button>
+          <Tooltip label={t('Show sidebar', 'แสดงแถบด้านข้าง')} side="bottom" align="left">
+            <button
+              onClick={onOpenSidebar}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-sky-100 transition"
+              aria-label={t('Show sidebar', 'แสดงแถบด้านข้าง')}
+            >
+              <PanelLeftOpen size={18} />
+            </button>
+          </Tooltip>
         )}
         <span className="font-semibold text-sm text-gray-700">UTO Admin</span>
       </div>

@@ -6,6 +6,8 @@ import { useParams } from "next/navigation"
 import toast from "react-hot-toast"
 import { ArrowLeft } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
+import ProjectSelect from "@/components/ProjectSelect"
+import EditProjectButton from "@/components/EditProjectButton"
 
 export default function ClientDetailPage() {
   const params = useParams() // ✅ get dynamic route param
@@ -14,7 +16,6 @@ export default function ClientDetailPage() {
   const [client, setClient] = useState<any>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [projectId, setProjectId] = useState("")
-  const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const { t } = useLanguage()
@@ -29,7 +30,6 @@ export default function ClientDetailPage() {
       .then((data) => {
         setClient(data)
         setProjectId(data.projectId ? String(data.projectId) : "")
-        setLocation(data.location)
         setLoading(false)
       })
       .catch((err) => {
@@ -48,7 +48,7 @@ export default function ClientDetailPage() {
     const res = await fetch(`/api/clients/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId: projectId ? Number(projectId) : null, location }),
+      body: JSON.stringify({ projectId: projectId ? Number(projectId) : null }),
     })
     if (!res.ok) throw new Error(t("Update failed", "บันทึกไม่สำเร็จ"))
     const updated = await res.json()
@@ -56,7 +56,7 @@ export default function ClientDetailPage() {
     setClient((prev: any) => ({
       ...prev,
       project: updated.project,
-      location,
+      location: updated.location,
       updatedAt: new Date().toISOString(), // optional: show last updated time
     }))
 
@@ -65,6 +65,8 @@ export default function ClientDetailPage() {
     toast.error(err.message || t("Update error", "เกิดข้อผิดพลาดในการบันทึก"))
   }
 }
+
+  const selectedProject = projects.find((p) => String(p.id) === projectId)
 
   if (loading) return <p className="page empty-state">{t("Loading...", "กำลังโหลด...")}</p>
   if (error) return <div className="page"><p className="alert-error">{error}</p></div>
@@ -92,30 +94,28 @@ export default function ClientDetailPage() {
         <div className="space-y-5">
           <div>
             <label htmlFor="projectId" className="label">{t("Project", "โครงการ")}</label>
-            <select
+            <ProjectSelect
               id="projectId"
               value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="input"
-            >
-              <option value="">{t("No Project", "ไม่มีโครงการ")}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="location" className="label">{t("Location", "สถานที่")}</label>
-            <input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="input"
-              placeholder={t("Enter location", "กรอกสถานที่")}
+              onChange={setProjectId}
+              projects={projects}
+              onCreated={(p) => setProjects((prev) => [...prev, p])}
             />
+            {selectedProject && (
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 text-sm text-gray-500">
+                <span>
+                  {t("Location: ", "สถานที่: ")}
+                  <span className="font-medium text-gray-700">{selectedProject.location || "-"}</span>
+                </span>
+                <EditProjectButton
+                  project={selectedProject}
+                  onSaved={(p) => {
+                    setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...p } : x)))
+                    setClient((prev: any) => (prev?.projectId === p.id ? { ...prev, project: { ...prev.project, ...p }, location: p.location } : prev))
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

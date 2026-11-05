@@ -20,12 +20,15 @@ export async function GET(req: Request, { params }: any) {
 export async function PUT(req: Request, { params }: any) {
   const { id } = await params // ✅ await params
   const body = await req.json()
+  const projectId = body.projectId ? Number(body.projectId) : null
+  const project = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null
 
+  // Location follows the project (see POST in ../route.ts).
   const updated = await prisma.client.update({
     where: { id: Number(id) },
     data: {
-      location: body.location,
-      projectId: body.projectId ?? null,
+      location: project?.location ?? "",
+      projectId,
     },
     include: { project: true },
   })

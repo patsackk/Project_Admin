@@ -1,6 +1,7 @@
 import './globals.css';
 import ClientLayout from './client-layout';
 import { LanguageProvider } from '@/components/LanguageProvider';
+import DialogProvider from '@/components/DialogProvider';
 import { getLang } from '@/lib/i18n-server';
 
 export const metadata = {
@@ -19,7 +20,9 @@ export default async function RootLayout({
     <html lang={lang}>
       <body className="antialiased min-h-screen flex flex-col">
         <LanguageProvider initialLang={lang}>
-          <ClientLayout>{children}</ClientLayout>
+          <DialogProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </DialogProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -18,7 +18,35 @@ function buildGroups(staffFlags: Record<PermissionKey, boolean>, t: Translate): 
     {
       title: t("Viewing", "การดูข้อมูล"),
       rows: [
-        { action: t("View Home, Schedule, Stock, Clients, History, Messages", "ดูหน้าหลัก ตารางงาน คลังวัสดุ ลูกค้า ประวัติ และข้อความ"), admin: true, staff: true },
+        { action: t("View Home, Schedule, Stock, Quotations & Invoices, Clients, History, Messages", "ดูหน้าหลัก ตารางงาน คลังวัสดุ ใบเสนอราคา/ใบแจ้งหนี้ ลูกค้า ประวัติ และข้อความ"), admin: true, staff: true },
+      ],
+    },
+    {
+      title: t("Stock", "คลังวัสดุ"),
+      rows: [
+        {
+          action: t(
+            "Change item categories and check amounts",
+            "เปลี่ยนหมวดหมู่และตรวจนับจำนวนสินค้า"
+          ),
+          admin: true,
+          staff: staffFlags.manageStock,
+          key: "manageStock",
+        },
+      ],
+    },
+    {
+      title: t("Quotations & Invoices", "ใบเสนอราคาและใบแจ้งหนี้"),
+      rows: [
+        {
+          action: t(
+            "Create, edit and delete quotations and invoices",
+            "สร้าง แก้ไข และลบใบเสนอราคาและใบแจ้งหนี้"
+          ),
+          admin: true,
+          staff: staffFlags.manageDocuments,
+          key: "manageDocuments",
+        },
       ],
     },
     {
@@ -26,7 +54,7 @@ function buildGroups(staffFlags: Record<PermissionKey, boolean>, t: Translate): 
       rows: [
         { action: t("Add a schedule (assign a worker to a project)", "เพิ่มตารางงาน (มอบหมายผู้ปฏิบัติงานให้โครงการ)"), admin: true, staff: true },
         { action: t("Unassign a schedule", "ยกเลิกการมอบหมายตารางงาน"), admin: true, staff: staffFlags.unassignSchedule, key: "unassignSchedule" },
-        { action: t("Add a project", "เพิ่มโครงการ"), admin: true, staff: staffFlags.addProject, key: "addProject" },
+        { action: t("Add or edit a project", "เพิ่มหรือแก้ไขโครงการ"), admin: true, staff: staffFlags.addProject, key: "addProject" },
         { action: t("Delete a project", "ลบโครงการ"), admin: true, staff: staffFlags.deleteProject, key: "deleteProject" },
         { action: t("Add a worker", "เพิ่มผู้ปฏิบัติงาน"), admin: true, staff: staffFlags.addWorker, key: "addWorker" },
       ],

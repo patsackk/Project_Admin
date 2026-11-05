@@ -39,6 +39,59 @@ export async function addProject(formData: FormData) {
   }
 }
 
+// ➕ Create a project from a dropdown (Clients pages): same rule as
+// addProject, but tells the caller what happened and returns the new row so
+// it can be selected straight away.
+export async function createProject(
+  name: string,
+  location: string
+): Promise<{ success: true; project: { id: number; name: string; location: string } } | { success: false; error: string }> {
+  const t = await getT()
+  if (!(await hasAccess("addProject"))) {
+    return { success: false, error: t("You don't have permission to add projects.", "คุณไม่มีสิทธิ์เพิ่มโครงการ") }
+  }
+  const trimmed = name.trim()
+  if (!trimmed) return { success: false, error: t("Enter a project name.", "กรุณากรอกชื่อโครงการ") }
+
+  try {
+    const project = await prisma.project.create({ data: { name: trimmed, location: location.trim() } })
+    revalidatePath("/schedule")
+    return { success: true, project: { id: project.id, name: project.name, location: project.location } }
+  } catch (error) {
+    console.error("Create Project Error:", error)
+    return { success: false, error: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }
+  }
+}
+
+// ✏️ Rename a project or fix its location. Same permission as adding one.
+// Clients on the project take its location, so theirs is updated too.
+export async function updateProject(
+  id: number,
+  name: string,
+  location: string
+): Promise<{ success: true; project: { id: number; name: string; location: string } } | { success: false; error: string }> {
+  const t = await getT()
+  if (!(await hasAccess("addProject"))) {
+    return { success: false, error: t("You don't have permission to edit projects.", "คุณไม่มีสิทธิ์แก้ไขโครงการ") }
+  }
+  const trimmed = name.trim()
+  if (!trimmed) return { success: false, error: t("Enter a project name.", "กรุณากรอกชื่อโครงการ") }
+
+  try {
+    const project = await prisma.project.update({
+      where: { id },
+      data: { name: trimmed, location: location.trim() },
+    })
+    await prisma.client.updateMany({ where: { projectId: id }, data: { location: project.location } })
+    revalidatePath("/schedule")
+    revalidatePath("/clients")
+    return { success: true, project: { id: project.id, name: project.name, location: project.location } }
+  } catch (error) {
+    console.error("Update Project Error:", error)
+    return { success: false, error: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }
+  }
+}
+
 // ➕ Add Worker (Admin only, unless granted to Staff via /permissions)
 export async function addWorker(formData: FormData) {
   if (!(await hasAccess("addWorker"))) {

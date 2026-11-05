@@ -2,7 +2,10 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany()
+    // Never send password hashes to the browser.
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, role: true, phone: true, address: true },
+    })
     return Response.json(users)
   } catch (error) {
     console.error(error)

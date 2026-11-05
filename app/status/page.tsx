@@ -37,7 +37,7 @@ export default async function StatusPage() {
   return (
     <div className="page">
       <div>
-        <h1 className="page-title">{t("Update Status", "อัปเดตสถานะงาน")}</h1>
+        <h1 className="page-title">{t("Status Updates", "อัปเดตสถานะงาน")}</h1>
         <p className="page-subtitle">
           {t(
             "Post a new progress update for your client and project milestones.",

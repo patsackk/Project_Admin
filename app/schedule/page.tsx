@@ -4,6 +4,8 @@ import AddScheduleModal from "@/components/AddScheduleModal"
 import AddEntityModal from "@/components/AddEntityModal"
 import UnassignedStaffPanel from "@/components/UnassignedStaffPanel"
 import { addProject, addWorker, addSchedule, deleteScheduleById, deleteProject } from "../actions"
+import EditProjectButton from "@/components/EditProjectButton"
+import Tooltip from "@/components/Tooltip"
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { hasAccess } from "@/lib/permissions"
 import { getLang } from "@/lib/i18n-server"
@@ -224,21 +226,25 @@ export default async function SchedulePage({
       {/* NAVIGATION */}
       <div className="card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex items-center gap-2">
-          <Link
-            href={linkFor(prevAnchor)}
-            aria-label={t("Previous", "ก่อนหน้า")}
-            className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
-          >
-            <ChevronLeft size={16} />
-          </Link>
+          <Tooltip label={t("Previous", "ก่อนหน้า")} align="left">
+            <Link
+              href={linkFor(prevAnchor)}
+              aria-label={t("Previous", "ก่อนหน้า")}
+              className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
+            >
+              <ChevronLeft size={16} />
+            </Link>
+          </Tooltip>
           <span className="font-semibold text-sm min-w-[180px] text-center">{rangeLabel}</span>
-          <Link
-            href={linkFor(nextAnchor)}
-            aria-label={t("Next", "ถัดไป")}
-            className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
-          >
-            <ChevronRight size={16} />
-          </Link>
+          <Tooltip label={t("Next", "ถัดไป")} align="left">
+            <Link
+              href={linkFor(nextAnchor)}
+              aria-label={t("Next", "ถัดไป")}
+              className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition"
+            >
+              <ChevronRight size={16} />
+            </Link>
+          </Tooltip>
           <Link
             href={linkFor(today)}
             className="btn-secondary px-3 py-1"
@@ -390,12 +396,17 @@ export default async function SchedulePage({
                   <p className="font-semibold text-gray-900">{project.name}</p>
                   <p className="text-xs text-gray-500">{project.location}</p>
 
-                  {canDeleteProject && (
-                    <form action={deleteProject}>
-                      <input type="hidden" name="id" value={project.id} />
-                      <button className="link-danger mt-2">{t("Delete", "ลบ")}</button>
-                    </form>
-                  )}
+                  <div className="mt-2 flex items-center gap-3">
+                    {canAddProject && (
+                      <EditProjectButton project={{ id: project.id, name: project.name, location: project.location }} />
+                    )}
+                    {canDeleteProject && (
+                      <form action={deleteProject}>
+                        <input type="hidden" name="id" value={project.id} />
+                        <button className="link-danger">{t("Delete", "ลบ")}</button>
+                      </form>
+                    )}
+                  </div>
                 </div>
 
                 {/* Days */}

@@ -13,6 +13,8 @@ export const PERMISSION_KEYS = [
   "deleteClient",
   "markClientDone",
   "manageContent",
+  "manageStock",
+  "manageDocuments",
 ] as const
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[number]
@@ -38,6 +40,8 @@ export async function getPermissions(): Promise<PermissionFlags> {
     deleteClient: row.staffDeleteClient,
     markClientDone: row.staffMarkClientDone,
     manageContent: row.staffManageContent,
+    manageStock: row.staffManageStock,
+    manageDocuments: row.staffManageDocuments,
   }
 }
 
@@ -50,6 +54,8 @@ export async function setPermission(key: PermissionKey, value: boolean) {
     | "staffDeleteClient"
     | "staffMarkClientDone"
     | "staffManageContent"
+    | "staffManageStock"
+    | "staffManageDocuments"
 
   await prisma.permission.upsert({
     where: { id: SETTINGS_ID },

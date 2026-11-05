@@ -10,14 +10,18 @@ export async function GET() {
 }
 
 // POST
+// Location lives on the project; the client's copy just follows it (History
+// and the assistant still read it from the client row).
 export async function POST(req: Request) {
   const body = await req.json()
+  const projectId = body.projectId ? Number(body.projectId) : null
+  const project = projectId ? await prisma.project.findUnique({ where: { id: projectId } }) : null
 
   const client = await prisma.client.create({
     data: {
       userId: body.userId,
-      location: body.location,
-      projectId: body.projectId ?? null,
+      location: project?.location ?? "",
+      projectId,
     },
     include: { user: true, project: true },
   })

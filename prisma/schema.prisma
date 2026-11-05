@@ -18,9 +18,10 @@ model User {
   role      String   @default("client") // "admin" | "client"
   createdAt DateTime @default(now())
 
-  client        Client? // relation
-  history       History[]
-  statusUpdates StatusUpdate[] // updates this admin/staff account has posted
+  client         Client? // relation
+  history        History[]
+  statusUpdates  StatusUpdate[] // updates this admin/staff account has posted
+  stockMovements StockMovement[] // stock changes this admin/staff account recorded
 }
 
 // ================= CLIENT PROFILE =================
@@ -45,6 +46,7 @@ model Project {
   schedules     Schedule[]
   clients       Client[]
   statusUpdates StatusUpdate[]
+  quotations    Quotation[]
 }
 
 // ================= WORKER =================
@@ -95,6 +97,8 @@ model Permission {
   staffDeleteClient     Boolean @default(false)
   staffMarkClientDone   Boolean @default(false)
   staffManageContent    Boolean @default(false)
+  staffManageStock      Boolean @default(false)
+  staffManageDocuments  Boolean @default(false)
 
   updatedAt DateTime @updatedAt
 }
@@ -182,4 +186,166 @@ model HeroSlide {
   sortOrder Int    @default(0)
 
   createdAt DateTime @default(now())
+}
+
+// ================= STOCK =================
+// Every purchase is kept as a cost record against the project it was bought
+// for (imported from the staff's AppSheet CSV export, or entered later).
+// Only purchases for the company warehouse ("คลังบริษัท") put items into
+// stock. Stock on hand for an item is the sum of its StockMovement deltas.
+
+model StockItem {
+  id Int @id @default(autoincrement())
+
+  name     String // as purchased (usually Thai); used to match future imports
+  nameEn   String @default("") // English display name; falls back to name
+  brand    String @default("")
+  color    String @default("")
+  unit     String @default("")
+  category String @default("")
+  minQty   Float  @default(0) // at or below this (and above 0) counts as low stock
+
+  createdAt DateTime @default(now())
+
+  purchases PurchaseLine[]
+  movements StockMovement[]
+
+  // The same product from the same brand/colour/unit is one item, so
+  // repeated purchases add up instead of creating duplicates.
+  @@unique([name, brand, color, unit])
+}
+
+model PurchaseLine {
+  id Int @id @default(autoincrement())
+
+  date       DateTime
+  projectRef String // AppSheet "Project Ref", e.g. "Boat 15" or "คลังบริษัท"
+  supplier   String
+  invoiceNo  String   @default("")
+
+  itemId Int
+  item   StockItem @relation(fields: [itemId], references: [id])
+
+  quantity     Float // negative for returns / credit notes
+  unitPrice    Float  @default(0)
+  discount     Float  @default(0) // fraction, 0.35 = 35%
+  netUnitPrice Float  @default(0)
+  subtotal     Float  @default(0) // before VAT
+  vat          Float  @default(0)
+  total        Float  @default(0)
+  note         String @default("")
+
+  // Fingerprint of the source CSV row, so importing the same export twice
+  // doesn't double-count anything. Null for purchases entered by hand.
+  importKey String? @unique
+
+  movement StockMovement?
+
+  createdAt DateTime @default(now())
+
+  @@index([projectRef])
+  @@index([date])
+}
+
+model StockMovement {
+  id Int @id @default(autoincrement())
+
+  itemId Int
+  item   StockItem @relation(fields: [itemId], references: [id])
+
+  type  String // "in" (received) | "out" (issued to a project) | "count" (stock-take correction)
+  delta Float // signed change to stock on hand
+
+  projectRef String @default("") // where "out" stock went
+  note       String @default("")
+  countedQty Float? // for "count": the quantity actually found on the shelf
+
+  purchaseId Int?          @unique
+  purchase   PurchaseLine? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  authorId Int?
+  author   User? @relation(fields: [authorId], references: [id])
+
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([itemId])
+}
+
+// ================= QUOTATIONS & INVOICES =================
+// Made on the admin Documents page and printed (or saved as PDF) from the
+// browser. Money is in baht; totals are always worked out from the lines
+// (lib/documents.ts), never stored, so they can't drift out of date.
+
+model Quotation {
+  id       Int    @id @default(autoincrement())
+  number   String // e.g. Q-DC-UTO-002-26
+  revision Int    @default(0) // printed as "R3"; a new revision is a new row
+
+  projectId     Int?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName   String
+  clientName    String
+  clientEmail   String   @default("")
+  clientAddress String   @default("")
+  subject       String   @default("")
+  date          DateTime
+  validityDays  Int      @default(30)
+  overheadPct   Float    @default(15)
+  vatPct        Float    @default(7)
+
+  // QuoteSection[]: { title, lines: { kind, description, qty, unit, matUnit, labourUnit, note }[] }
+  sections     Json
+  // PaymentStage[]: { label, percent }, e.g. Deposit 30 / Progress work 60 / Complete work 10
+  paymentTerms Json
+  // Plain text: a line without "-" starts a numbered heading, "- ..." lines are its points.
+  conditions   String @default("")
+
+  status    String   @default("draft") // "draft" | "sent" | "approved" | "rejected"
+
+  // Emailing: the client opens the document at /share/<shareToken> without
+  // logging in. Made the first time it's sent.
+  shareToken String?   @unique
+  sentAt     DateTime?
+  sentTo     String    @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices Invoice[]
+
+  @@unique([number, revision])
+}
+
+model Invoice {
+  id     Int    @id @default(autoincrement())
+  number String @unique // e.g. INV-26-001
+
+  quotationId Int?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+  stageLabel  String     @default("") // which payment stage of the quotation this bills, if any
+
+  clientName    String
+  clientEmail   String    @default("")
+  clientAddress String    @default("")
+  clientTaxId   String    @default("")
+  projectName   String    @default("")
+  date          DateTime
+  dueDate       DateTime?
+
+  // InvoiceItem[]: { description, qty, unit, unitPrice }
+  items          Json
+  vatPct         Float  @default(7)
+  withholdingPct Float  @default(0) // withholding tax the client deducts, e.g. 3% for services
+  note           String @default("")
+
+  status    String    @default("unpaid") // "unpaid" | "paid"
+  paidAt    DateTime?
+
+  shareToken String?   @unique
+  sentAt     DateTime?
+  sentTo     String    @default("")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

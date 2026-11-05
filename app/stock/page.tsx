@@ -1,139 +1,100 @@
-"use client"
+import { prisma } from "@/lib/prisma"
+import { hasAccess } from "@/lib/permissions"
+import { getLang } from "@/lib/i18n-server"
+import { makeT } from "@/lib/i18n"
+import { HIDDEN_CATEGORY, stockStatus } from "@/lib/stock"
+import StockTable, { type StockRow } from "@/components/stock/StockTable"
 
-import { useState } from "react"
-import { stockItems as items } from "@/lib/stockData"
-import { useLanguage } from "@/components/LanguageProvider"
-import type { Translate } from "@/lib/i18n"
+// Lists up to three names, then "and N more".
+function nameList(names: string[], more: (n: number) => string) {
+  const shown = names.slice(0, 3).join(", ")
+  return names.length > 3 ? `${shown} ${more(names.length - 3)}` : shown
+}
 
-export default function StockPage() {
-  const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState("All")
-  const { t } = useLanguage()
+export default async function StockPage() {
+  const lang = await getLang()
+  const t = makeT(lang)
+  const canManage = await hasAccess("manageStock")
 
-  const categoryLabel: Record<string, string> = {
-    All: t("All", "ทั้งหมด"),
-    Electrical: t("Electrical", "ระบบไฟฟ้า"),
-    WaterSup: t("WaterSup", "ระบบประปา"),
-    AirCon: t("AirCon", "ระบบปรับอากาศ"),
-  }
-
-  const filteredItems = items.filter((item) => {
-    return (
-      item.name.toLowerCase().includes(search.toLowerCase()) &&
-      (filter === "All" || item.category === filter)
-    )
+  // Warehouse stock on hand = sum of each item's movements. Office items are
+  // bought through the warehouse too but aren't site stock, so skip them.
+  const sums = await prisma.stockMovement.groupBy({ by: ["itemId"], _sum: { delta: true } })
+  const onHandById = new Map(sums.map((s) => [s.itemId, s._sum.delta ?? 0]))
+  const items = await prisma.stockItem.findMany({
+    where: { id: { in: [...onHandById.keys()] }, category: { not: HIDDEN_CATEGORY } },
   })
+  const lastCounts = await prisma.stockMovement.groupBy({
+    by: ["itemId"],
+    where: { type: "count" },
+    _max: { createdAt: true },
+  })
+  const lastCheckedById = new Map(lastCounts.map((c) => [c.itemId, c._max.createdAt]))
+
+  const rows: StockRow[] = items.map((i) => {
+    const onHand = Math.round((onHandById.get(i.id) ?? 0) * 1000) / 1000
+    // English by default; the Thai purchase name in Thai mode, or when no
+    // English name has been set yet.
+    const name = lang === "th" || !i.nameEn ? i.name : i.nameEn
+    return {
+      id: i.id,
+      name,
+      otherName: name === i.name ? i.nameEn : i.name,
+      brand: i.brand,
+      unit: i.unit,
+      category: i.category,
+      onHand,
+      minQty: i.minQty,
+      lastChecked: lastCheckedById.get(i.id)?.toISOString() ?? null,
+      status: stockStatus(onHand, i.minQty),
+    }
+  })
+  rows.sort((a, b) => a.name.localeCompare(b.name, lang))
+
+  const out = rows.filter((r) => r.status === "out").map((r) => r.name)
+  const low = rows.filter((r) => r.status === "low").map((r) => r.name)
+  const more = (n: number) => t(`and ${n} more`, `และอีก ${n} รายการ`)
 
   return (
     <div className="page">
       {/* Header */}
-      <div>
-        <h1 className="page-title">{t("Inventory & Stock", "คลังวัสดุและอุปกรณ์")}</h1>
-        <p className="page-subtitle">
-          {t("Manage and track installation components and equipment.", "จัดการและติดตามชิ้นส่วนและอุปกรณ์สำหรับงานติดตั้ง")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="page-title">{t("Inventory & Stock", "คลังวัสดุและอุปกรณ์")}</h1>
+          <p className="page-subtitle">
+            {t(
+              "Manage and track installation components and equipment.",
+              "จัดการและติดตามชิ้นส่วนและอุปกรณ์สำหรับงานติดตั้ง"
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Alerts */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-          <p className="text-red-700 font-semibold">{t("Out of Stock", "สินค้าหมด")}</p>
+          <p className="text-red-700 font-semibold">
+            {t("Out of Stock", "สินค้าหมด")} ({out.length})
+          </p>
           <p className="text-sm text-gray-600">
-            {t("Heavy Duty Circuit Breakers are completely depleted.", "Heavy Duty Circuit Breaker หมดสต็อกแล้ว")}
+            {out.length > 0
+              ? t(`${nameList(out, more)} completely depleted.`, `${nameList(out, more)} หมดสต็อกแล้ว`)
+              : t("Nothing is out of stock.", "ไม่มีสินค้าที่หมดสต็อก")}
           </p>
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-amber-700 font-semibold">
-            {t("Low Inventory", "สินค้าใกล้หมด")}
+            {t("Low Inventory", "สินค้าใกล้หมด")} ({low.length})
           </p>
           <p className="text-sm text-gray-600">
-            {t("High-Pressure Water Pump X5 is running low.", "High-Pressure Water Pump X5 เหลือน้อย")}
+            {low.length > 0
+              ? t(`${nameList(low, more)} running low.`, `${nameList(low, more)} เหลือน้อย`)
+              : t("Nothing is running low.", "ไม่มีสินค้าที่ใกล้หมด")}
           </p>
         </div>
       </div>
 
-      {/* Search + Filter */}
-      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-        <input
-          type="text"
-          placeholder={t("Search item name...", "ค้นหาชื่อสินค้า...")}
-          className="input md:w-1/3"
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <div className="flex flex-wrap gap-2">
-          {["All", "Electrical", "WaterSup", "AirCon"].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={`${filter === cat ? "btn-primary" : "btn-secondary"} px-4 py-1.5`}
-            >
-              {categoryLabel[cat]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>{t("Item Details", "รายละเอียดสินค้า")}</th>
-              <th>{t("Category", "หมวดหมู่")}</th>
-              <th>{t("Status", "สถานะ")}</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredItems.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <p className="font-medium text-gray-900">{item.name}</p>
-                </td>
-
-                <td>
-                  <span className="badge bg-gray-100 text-gray-600">
-                    {categoryLabel[item.category] ?? item.category}
-                  </span>
-                </td>
-
-                <td>
-                  <StatusBadge status={item.status} t={t} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <StockTable rows={rows} canManage={canManage} />
     </div>
-  )
-}
-
-// ✅ CLEAN STATUS (ONLY 3 TYPES)
-function StatusBadge({ status, t }: { status: string; t: Translate }) {
-  const base = "badge"
-
-  if (status === "In Stock") {
-    return (
-      <span className={`${base} bg-green-100 text-green-700`}>
-        {t("In Stock", "มีสินค้า")}
-      </span>
-    )
-  }
-
-  if (status === "Low Stock") {
-    return (
-      <span className={`${base} bg-amber-100 text-amber-700`}>
-        {t("Low Stock", "ใกล้หมด")}
-      </span>
-    )
-  }
-
-  return (
-    <span className={`${base} bg-red-100 text-red-700`}>
-      {t("Out of Stock", "สินค้าหมด")}
-    </span>
   )
 }

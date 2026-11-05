@@ -4,6 +4,13 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 import { useLanguage } from "@/components/LanguageProvider"
+import { useDialog } from "@/components/DialogProvider"
+import ProjectSelect from "@/components/ProjectSelect"
+
+// A client is wherever their project is; the client's own location is only a
+// fallback for rows saved before that rule.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const clientLocation = (c: any) => c.project?.location || (c.location !== "Add Location" && c.location) || "-"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
@@ -15,6 +22,7 @@ export default function ClientsPage() {
   const [canDelete, setCanDelete] = useState(false)
   const [canMarkDone, setCanMarkDone] = useState(false)
   const { t } = useLanguage()
+  const dialog = useDialog()
 
   // Fetch current session (Admin vs Staff) to decide which actions to show
   const fetchSession = async () => {
@@ -71,7 +79,6 @@ export default function ClientsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: Number(selectedUserId),
-          location: "Add Location",
           projectId: selectedProjectId ? Number(selectedProjectId) : null,
         }),
       })
@@ -88,7 +95,14 @@ export default function ClientsPage() {
 
   // Handle delete
   const handleDelete = async (id: number) => {
-    const confirmed = window.confirm(t("Are you sure you want to delete this client?", "ต้องการลบลูกค้ารายนี้ใช่หรือไม่?"))
+    const confirmed = await dialog.confirm({
+      title: t("Delete this client?", "ลบลูกค้ารายนี้?"),
+      message: t(
+        "They're removed from the list without being saved to History. Use “Done” instead when the job is finished.",
+        "ลูกค้าจะถูกลบออกโดยไม่บันทึกลงประวัติ หากงานเสร็จแล้วให้กด “เสร็จสิ้น” แทน"
+      ),
+      danger: true,
+    })
     if (!confirmed) return
 
     try {
@@ -106,6 +120,11 @@ export default function ClientsPage() {
     }
   }
 
+  // Only client accounts (not admins) that aren't on the list yet — a user
+  // can be one client at a time.
+  const linkedUserIds = new Set(clients.map((c) => c.userId))
+  const availableUsers = users.filter((u) => u.role === "client" && !linkedUserIds.has(u.id))
+
   // Filter clients by search
   const filteredClients = search
     ? clients.filter((c) =>
@@ -114,7 +133,14 @@ export default function ClientsPage() {
     : clients
 
   const handleDone = async (client: any) => {
-  const confirmed = window.confirm(t("Mark this project as done?", "ทำเครื่องหมายว่าโครงการนี้เสร็จสิ้นแล้วใช่หรือไม่?"))
+  const confirmed = await dialog.confirm({
+    title: t("Mark this project as done?", "ทำเครื่องหมายว่าโครงการนี้เสร็จสิ้นแล้ว?"),
+    message: t(
+      `${client.user?.name ?? "This client"} – ${client.project?.name ?? "no project"} moves to History.`,
+      `${client.user?.name ?? "ลูกค้ารายนี้"} – ${client.project?.name ?? "ไม่มีโครงการ"} จะถูกย้ายไปที่ประวัติ`
+    ),
+    confirmLabel: t("Mark as done", "เสร็จสิ้น"),
+  })
   if (!confirmed) return
 
   try {
@@ -127,7 +153,7 @@ export default function ClientsPage() {
       body: JSON.stringify({
         userId: client.userId,
         projectName: client.project?.name ?? "No Project",
-        location: client.location,
+        location: clientLocation(client),
       }),
     })
 
@@ -152,7 +178,7 @@ export default function ClientsPage() {
   return (
     <div className="page">
       <div>
-        <h1 className="page-title">{t("Client Information", "ข้อมูลลูกค้า")}</h1>
+        <h1 className="page-title">{t("Clients", "ลูกค้า")}</h1>
         <p className="page-subtitle">{t("Link registered users to a project and track them until it is done.", "เชื่อมผู้ใช้ที่ลงทะเบียนเข้ากับโครงการ และติดตามจนกว่าโครงการจะเสร็จสิ้น")}</p>
       </div>
 
@@ -163,26 +189,25 @@ export default function ClientsPage() {
           onChange={(e) => setSelectedUserId(e.target.value)}
           className="input flex-1"
         >
-          <option value="">{t("Select Client", "เลือกลูกค้า")}</option>
-          {users.map((u) => (
+          <option value="">
+            {availableUsers.length > 0
+              ? t("Select Client", "เลือกลูกค้า")
+              : t("No registered clients left to add", "ไม่มีลูกค้าที่ลงทะเบียนแล้วเหลือให้เพิ่ม")}
+          </option>
+          {availableUsers.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.name}
+              {u.name} — {u.email}
             </option>
           ))}
         </select>
 
-        <select
+        <ProjectSelect
           value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="input flex-1"
-        >
-          <option value="">{t("No Project", "ไม่มีโครงการ")}</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+          onChange={setSelectedProjectId}
+          projects={projects}
+          onCreated={(p) => setProjects((prev) => [...prev, p])}
+          className="flex-1"
+        />
 
         <button
           onClick={handleCreate}
@@ -213,7 +238,7 @@ export default function ClientsPage() {
               {t("Project: ", "โครงการ: ")}<span className="font-semibold">{c.project?.name ?? t("No Project", "ไม่มีโครงการ")}</span>
             </p>
             <p className="text-sm text-gray-600">
-              {t("Location: ", "สถานที่: ")}{c.location}
+              {t("Location: ", "สถานที่: ")}{clientLocation(c)}
             </p>
         
 
@@ -249,7 +274,7 @@ export default function ClientsPage() {
             <div className="absolute opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gray-900/80 text-white text-xs p-3 rounded-xl top-2 right-2 w-52 shadow-lg pointer-events-none group-hover:pointer-events-auto">
               <p>{t("Email: ", "อีเมล: ")}{c.user?.email}</p>
               <p>{t("Phone: ", "โทรศัพท์: ")}{c.user?.phone || "-"}</p>
-              <p>{t("Location: ", "สถานที่: ")}{c.location}</p>
+              <p>{t("Location: ", "สถานที่: ")}{clientLocation(c)}</p>
               <p>{t("Address: ", "ที่อยู่: ")}{c.user?.address || "-"}</p>
             </div>
           </div>

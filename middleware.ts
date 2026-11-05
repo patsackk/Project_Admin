@@ -10,9 +10,12 @@ const PUBLIC_PREFIXES = [
   // Status-update photos are loaded cross-origin by the client app's
   // /track page, whose users have no ADMIN session.
   "/uploads",
+  // Quotations / invoices emailed to clients, opened by a secret link.
+  "/share/",
   "/api/login",
   "/api/register",
-  "/api/contact",
+  // Not /api/contact: listing messages and replying (which can send email)
+  // are admin-only. The client site's contact form posts to its own app.
 ]
 
 function isPublic(pathname: string) {

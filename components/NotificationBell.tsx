@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
+import Tooltip from '@/components/Tooltip';
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -70,23 +71,25 @@ export default function NotificationBell() {
 
   return (
     <div ref={containerRef} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="relative w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-sky-100 hover:text-sky-700 transition"
-        aria-label={
-          count > 0
-            ? t(`Notifications (${count} pending)`, `การแจ้งเตือน (รอตอบ ${count})`)
-            : t('Notifications', 'การแจ้งเตือน')
-        }
-        aria-expanded={open}
-      >
-        <Bell size={18} />
-        {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-600 text-[10px] font-semibold text-white">
-            {count > 99 ? '99+' : count}
-          </span>
-        )}
-      </button>
+      <Tooltip label={t('Notifications', 'การแจ้งเตือน')} side="bottom">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="relative w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-sky-100 hover:text-sky-700 transition"
+          aria-label={
+            count > 0
+              ? t(`Notifications (${count} pending)`, `การแจ้งเตือน (รอตอบ ${count})`)
+              : t('Notifications', 'การแจ้งเตือน')
+          }
+          aria-expanded={open}
+        >
+          <Bell size={18} />
+          {count > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-600 text-[10px] font-semibold text-white">
+              {count > 99 ? '99+' : count}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {open && (
         <div className="card absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden z-30">

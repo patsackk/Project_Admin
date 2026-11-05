@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import ReactMarkdown from "react-markdown"
 import { MessageCircle, X } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
+import Tooltip from "@/components/Tooltip"
 
 type Message = { role: "user" | "assistant"; content: string }
 
@@ -112,13 +113,15 @@ export default function AdminChatbot() {
         </div>
       )}
 
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? t("Close assistant", "ปิดผู้ช่วย") : t("Open assistant", "เปิดผู้ช่วย")}
-        className="bg-sky-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-sky-700 transition"
-      >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
-      </button>
+      <Tooltip label={open ? t("Close assistant", "ปิดผู้ช่วย") : t("Ask the assistant", "ถามผู้ช่วย")}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? t("Close assistant", "ปิดผู้ช่วย") : t("Open assistant", "เปิดผู้ช่วย")}
+          className="bg-sky-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-sky-700 transition"
+        >
+          {open ? <X size={22} /> : <MessageCircle size={22} />}
+        </button>
+      </Tooltip>
     </div>
   )
 }

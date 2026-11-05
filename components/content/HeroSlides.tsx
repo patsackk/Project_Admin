@@ -5,11 +5,14 @@ import toast from "react-hot-toast"
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react"
 import { addHeroSlides, deleteHeroSlide, moveHeroSlide, type ContentResult } from "@/app/content/actions"
 import { useLanguage } from "@/components/LanguageProvider"
+import Tooltip from "@/components/Tooltip"
+import { useDialog } from "@/components/DialogProvider"
 
 type Slide = { id: number; image: string; sortOrder: number }
 
 export default function HeroSlides({ slides, canEdit }: { slides: Slide[]; canEdit: boolean }) {
   const { t } = useLanguage()
+  const dialog = useDialog()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -36,18 +39,19 @@ export default function HeroSlides({ slides, canEdit }: { slides: Slide[]; canEd
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
-  const handleDelete = (slide: Slide) => {
-    if (slides.length === 1) {
-      const ok = window.confirm(
-        t(
-          "This is the last slide. The home page banner will be empty. Delete anyway?",
-          "นี่คือสไลด์สุดท้าย แบนเนอร์หน้าแรกจะว่างเปล่า ต้องการลบหรือไม่?"
-        )
-      )
-      if (!ok) return
-    } else if (!window.confirm(t("Delete this slide?", "ลบสไลด์นี้ใช่หรือไม่?"))) {
-      return
-    }
+  const handleDelete = async (slide: Slide) => {
+    const ok = await dialog.confirm({
+      title: t("Delete this slide?", "ลบสไลด์นี้?"),
+      message:
+        slides.length === 1
+          ? t(
+              "This is the last slide. The home page banner will be empty.",
+              "นี่คือสไลด์สุดท้าย แบนเนอร์หน้าแรกจะว่างเปล่า"
+            )
+          : undefined,
+      danger: true,
+    })
+    if (!ok) return
     run(() => deleteHeroSlide(slide.id), t("Slide deleted", "ลบสไลด์แล้ว"))
   }
 
@@ -89,22 +93,26 @@ export default function HeroSlides({ slides, canEdit }: { slides: Slide[]; canEd
               </div>
               {canEdit && (
                 <div className="flex items-center gap-2 p-3">
-                  <button
-                    onClick={() => run(() => moveHeroSlide(slide.id, "up"))}
-                    disabled={isPending || i === 0}
-                    aria-label={t("Move earlier", "เลื่อนขึ้น")}
-                    className="btn-ghost px-3 py-1.5 disabled:opacity-30"
-                  >
-                    <ArrowUp size={16} />
-                  </button>
-                  <button
-                    onClick={() => run(() => moveHeroSlide(slide.id, "down"))}
-                    disabled={isPending || i === slides.length - 1}
-                    aria-label={t("Move later", "เลื่อนลง")}
-                    className="btn-ghost px-3 py-1.5 disabled:opacity-30"
-                  >
-                    <ArrowDown size={16} />
-                  </button>
+                  <Tooltip label={t("Move earlier", "เลื่อนขึ้น")}>
+                    <button
+                      onClick={() => run(() => moveHeroSlide(slide.id, "up"))}
+                      disabled={isPending || i === 0}
+                      aria-label={t("Move earlier", "เลื่อนขึ้น")}
+                      className="btn-ghost px-3 py-1.5 disabled:opacity-30"
+                    >
+                      <ArrowUp size={16} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip label={t("Move later", "เลื่อนลง")}>
+                    <button
+                      onClick={() => run(() => moveHeroSlide(slide.id, "down"))}
+                      disabled={isPending || i === slides.length - 1}
+                      aria-label={t("Move later", "เลื่อนลง")}
+                      className="btn-ghost px-3 py-1.5 disabled:opacity-30"
+                    >
+                      <ArrowDown size={16} />
+                    </button>
+                  </Tooltip>
                   <button
                     onClick={() => handleDelete(slide)}
                     disabled={isPending}

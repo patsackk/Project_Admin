@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import { MapPin, Pencil, Plus, Trash2, X } from "lucide-react"
 import { deleteContent, saveContent, type ContentKind } from "@/app/content/actions"
 import { useLanguage } from "@/components/LanguageProvider"
+import { useDialog } from "@/components/DialogProvider"
 
 // Portfolio projects and services share one editor; projects just have a
 // few extra fields (location, type).
@@ -32,6 +33,7 @@ export default function ContentList({
   canEdit: boolean
 }) {
   const { t } = useLanguage()
+  const dialog = useDialog()
   // undefined = closed, null = adding a new item
   const [editing, setEditing] = useState<ContentItem | null | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
@@ -40,10 +42,12 @@ export default function ContentList({
   const typeLabel = (type?: string) =>
     type === "Commercial" ? t("Commercial", "เชิงพาณิชย์") : t("Residential", "ที่พักอาศัย")
 
-  const handleDelete = (item: ContentItem) => {
-    const confirmed = window.confirm(
-      t(`Delete “${item.nameEn}” from the website?`, `ลบ “${item.nameTh || item.nameEn}” ออกจากเว็บไซต์ใช่หรือไม่?`)
-    )
+  const handleDelete = async (item: ContentItem) => {
+    const confirmed = await dialog.confirm({
+      title: t(`Delete “${item.nameEn}” from the website?`, `ลบ “${item.nameTh || item.nameEn}” ออกจากเว็บไซต์?`),
+      message: t("Clients will no longer see it. This can't be undone.", "ลูกค้าจะไม่เห็นรายการนี้อีก และกู้คืนไม่ได้"),
+      danger: true,
+    })
     if (!confirmed) return
 
     startTransition(async () => {
