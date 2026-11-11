@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { hasAccess } from "@/lib/permissions"
+import { getT } from "@/lib/i18n-server"
+
+type Params = { params: Promise<{ id: string }> }
 
 // GET single client
-export async function GET(req: Request, { params }: any) {
+export async function GET(req: Request, { params }: Params) {
   const { id } = await params // ✅ await params
 
   const client = await prisma.client.findUnique({
@@ -17,7 +21,7 @@ export async function GET(req: Request, { params }: any) {
 }
 
 // UPDATE
-export async function PUT(req: Request, { params }: any) {
+export async function PUT(req: Request, { params }: Params) {
   const { id } = await params // ✅ await params
   const body = await req.json()
   const projectId = body.projectId ? Number(body.projectId) : null
@@ -36,8 +40,14 @@ export async function PUT(req: Request, { params }: any) {
   return Response.json(updated)
 }
 
-// DELETE
-export async function DELETE(req: Request, { params }: any) {
+// DELETE (Admin only, unless granted to Staff via /permissions — same rule
+// as DELETE in ../route.ts)
+export async function DELETE(req: Request, { params }: Params) {
+  if (!(await hasAccess("deleteClient"))) {
+    const t = await getT()
+    return Response.json({ message: t("You don't have permission to do that.", "คุณไม่มีสิทธิ์ทำรายการนี้") }, { status: 403 })
+  }
+
   const { id } = await params // ✅ await params
 
   await prisma.client.delete({

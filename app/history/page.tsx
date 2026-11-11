@@ -3,8 +3,16 @@
 import { useEffect, useState } from "react"
 import { useLanguage } from "@/components/LanguageProvider"
 
+type HistoryRow = {
+  id: number
+  projectName: string
+  location: string
+  completedAt: string
+  user: { name: string } | null
+}
+
 export default function HistoryPage() {
-  const [history, setHistory] = useState<any[]>([])
+  const [history, setHistory] = useState<HistoryRow[]>([])
   const { t, locale } = useLanguage()
 
   useEffect(() => {

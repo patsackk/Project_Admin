@@ -4,7 +4,7 @@ import { MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLanguage } from "@/components/LanguageProvider"
 
-export default function ProjectCard({ project }: any) {
+export default function ProjectCard({ project }: { project: { id: number; name: string; location: string; schedules?: unknown[] } }) {
   const router = useRouter()
   const { t } = useLanguage()
 

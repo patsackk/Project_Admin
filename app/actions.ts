@@ -5,38 +5,16 @@ import { revalidatePath } from "next/cache"
 import { hasAccess } from "@/lib/permissions"
 import { getT } from "@/lib/i18n-server"
 
-// ➕ Add Project (Admin only, unless granted to Staff via /permissions)
-export async function addProject(formData: FormData) {
-  if (!(await hasAccess("addProject"))) {
-    console.warn("Blocked addProject: not permitted for this session")
-    return
-  }
+type ActionResult = { success: true } | { success: false; error: string }
 
-  try {
-    // ✅ Safe string extraction
-    const name = formData.get("name")?.toString().trim()
-    const location = formData.get("location")?.toString().trim() || ""
- 
-    console.log("DATA:", { name, location })
-
-    if (!name) {
-      console.log("❌ NAME EMPTY")
-      return
-    }
-
-    await prisma.project.create({
-      data: {
-        name,
-        location,
-      },
-    })
-     
-    console.log("✅ SAVED SUCCESS")
-
-    revalidatePath("/schedule")
-  } catch (error) {
-    console.error("Add Project Error:", error)
-  }
+// ➕ Add Project from the Schedule page (Admin only, unless granted to Staff
+// via /permissions). Same checks as createProject below.
+export async function addProject(formData: FormData): Promise<ActionResult> {
+  const result = await createProject(
+    formData.get("name")?.toString() ?? "",
+    formData.get("location")?.toString() ?? ""
+  )
+  return result.success ? { success: true } : result
 }
 
 // ➕ Create a project from a dropdown (Clients pages): same rule as
@@ -93,18 +71,17 @@ export async function updateProject(
 }
 
 // ➕ Add Worker (Admin only, unless granted to Staff via /permissions)
-export async function addWorker(formData: FormData) {
+export async function addWorker(formData: FormData): Promise<ActionResult> {
+  const t = await getT()
   if (!(await hasAccess("addWorker"))) {
-    console.warn("Blocked addWorker: not permitted for this session")
-    return
+    return { success: false, error: t("You don't have permission to add workers.", "คุณไม่มีสิทธิ์เพิ่มผู้ปฏิบัติงาน") }
   }
 
+  const name = formData.get("name")?.toString().trim()
+  const team = formData.get("team")?.toString().trim() || "General"
+  if (!name) return { success: false, error: t("Enter a worker name.", "กรุณากรอกชื่อผู้ปฏิบัติงาน") }
+
   try {
-    const name = formData.get("name")?.toString().trim()
-    const team = formData.get("team")?.toString().trim() || "General"
-
-    if (!name) return
-
     await prisma.worker.create({
       data: {
         name,
@@ -113,8 +90,10 @@ export async function addWorker(formData: FormData) {
     })
 
     revalidatePath("/schedule")
+    return { success: true }
   } catch (error) {
     console.error("Add Worker Error:", error)
+    return { success: false, error: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }
   }
 }
 

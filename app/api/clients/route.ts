@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { hasAccess } from "@/lib/permissions"
+import { getT } from "@/lib/i18n-server"
 
 // GET
 export async function GET() {
@@ -30,27 +31,43 @@ export async function POST(req: Request) {
 }
 
 // DELETE (Admin only, unless granted to Staff via /permissions).
-// `action` distinguishes an outright delete from "mark done" (which also
-// deletes the client row, after archiving to History) since they're
+// `action` distinguishes an outright delete from "mark done" (which archives
+// the client to History first, in the same transaction) since they're
 // independently toggleable permissions.
 export async function DELETE(req: Request) {
+  const t = await getT()
   const { id, action } = await req.json()
   const permissionKey = action === "done" ? "markClientDone" : "deleteClient"
 
   if (!(await hasAccess(permissionKey))) {
     return Response.json(
-      { success: false, message: "You don't have permission to do that." },
+      { success: false, message: t("You don't have permission to do that.", "คุณไม่มีสิทธิ์ทำรายการนี้") },
       { status: 403 }
     )
   }
 
   try {
-    const deletedClient = await prisma.client.delete({
-      where: { id: Number(id) },
+    const deletedClient = await prisma.$transaction(async (tx) => {
+      const client = await tx.client.findUniqueOrThrow({
+        where: { id: Number(id) },
+        include: { project: true },
+      })
+      if (action === "done") {
+        await tx.history.create({
+          data: {
+            userId: client.userId,
+            projectName: client.project?.name ?? "No Project",
+            // Same rule as the Clients page: the project's location wins.
+            location: client.project?.location || (client.location !== "Add Location" ? client.location : "") || "-",
+          },
+        })
+      }
+      return tx.client.delete({ where: { id: client.id } })
     })
 
     return Response.json({ success: true, client: deletedClient })
-  } catch (err: any) {
-    return Response.json({ success: false, message: err.message }, { status: 500 })
+  } catch (err) {
+    console.error("Delete client error:", err)
+    return Response.json({ success: false, message: t("Something went wrong. Please try again.", "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง") }, { status: 500 })
   }
 }

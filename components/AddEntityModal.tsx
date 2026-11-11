@@ -4,12 +4,19 @@ import { useState, useTransition } from "react"
 import toast from "react-hot-toast"
 import { useLanguage } from "@/components/LanguageProvider"
 
+type AddAction = (formData: FormData) => Promise<{ success: true } | { success: false; error: string }>
+
 export default function AddEntityModal({
   addProject,
   addWorker,
   defaultType = "project",
   label = "+ Add",
-}: any) {
+}: {
+  addProject: AddAction
+  addWorker: AddAction
+  defaultType?: "project" | "worker"
+  label?: string
+}) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const isProject = defaultType === "project"
@@ -17,10 +24,10 @@ export default function AddEntityModal({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
-      if (isProject) {
-        await addProject(formData)
-      } else {
-        await addWorker(formData)
+      const result = isProject ? await addProject(formData) : await addWorker(formData)
+      if (!result.success) {
+        toast.error(result.error)
+        return
       }
 
       setOpen(false)

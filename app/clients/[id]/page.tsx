@@ -8,13 +8,15 @@ import { ArrowLeft } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
 import ProjectSelect from "@/components/ProjectSelect"
 import EditProjectButton from "@/components/EditProjectButton"
+import type { ProjectOption } from "@/components/ProjectSelect"
+import type { ClientRow } from "@/lib/client-types"
 
 export default function ClientDetailPage() {
   const params = useParams() // ✅ get dynamic route param
   const id = params?.id
 
-  const [client, setClient] = useState<any>(null)
-  const [projects, setProjects] = useState<any[]>([])
+  const [client, setClient] = useState<ClientRow | null>(null)
+  const [projects, setProjects] = useState<ProjectOption[]>([])
   const [projectId, setProjectId] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -53,16 +55,16 @@ export default function ClientDetailPage() {
     if (!res.ok) throw new Error(t("Update failed", "บันทึกไม่สำเร็จ"))
     const updated = await res.json()
 
-    setClient((prev: any) => ({
+    setClient((prev) => prev && {
       ...prev,
+      projectId: updated.projectId,
       project: updated.project,
       location: updated.location,
-      updatedAt: new Date().toISOString(), // optional: show last updated time
-    }))
+    })
 
     toast.success(t("Saved successfully!", "บันทึกเรียบร้อยแล้ว!"))
-  } catch (err: any) {
-    toast.error(err.message || t("Update error", "เกิดข้อผิดพลาดในการบันทึก"))
+  } catch (err) {
+    toast.error((err as Error).message || t("Update error", "เกิดข้อผิดพลาดในการบันทึก"))
   }
 }
 
@@ -111,7 +113,7 @@ export default function ClientDetailPage() {
                   project={selectedProject}
                   onSaved={(p) => {
                     setProjects((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...p } : x)))
-                    setClient((prev: any) => (prev?.projectId === p.id ? { ...prev, project: { ...prev.project, ...p }, location: p.location } : prev))
+                    setClient((prev) => (prev?.projectId === p.id ? { ...prev, project: p, location: p.location } : prev))
                   }}
                 />
               </div>

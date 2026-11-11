@@ -9,6 +9,7 @@ type ContactMessage = {
   id: number
   name: string
   email: string
+  phone: string | null
   message: string
   createdAt: string
   reply: string | null
@@ -89,7 +90,10 @@ export default function QuickResponseModal({
             </div>
             <div>
               <p className="text-sm font-medium">{t("To: ", "ถึง: ")}{contact.name}</p>
-              <p className="text-xs text-gray-500">{contact.email}</p>
+              <p className="text-xs text-gray-500">
+                {contact.email}
+                {contact.phone && ` · ${contact.phone}`}
+              </p>
             </div>
           </div>
 

@@ -76,6 +76,7 @@ model ContactForm {
   id        Int      @id @default(autoincrement())
   name      String
   email     String
+  phone     String? // asked for on the client site's contact form
   message   String
   createdAt DateTime @default(now())
 

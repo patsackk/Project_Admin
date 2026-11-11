@@ -10,6 +10,7 @@ type ContactMessage = {
   id: number
   name: string
   email: string
+  phone: string | null
   message: string
   createdAt: string
   reply: string | null
@@ -83,6 +84,7 @@ export default function MessagesPage() {
                         <div>
                           <p className="font-medium text-gray-900">{m.name}</p>
                           <p className="text-xs text-gray-500">{m.email}</p>
+                          {m.phone && <p className="text-xs text-gray-500">{m.phone}</p>}
                         </div>
                       </div>
                     </td>

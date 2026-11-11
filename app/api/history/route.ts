@@ -9,17 +9,5 @@ export async function GET() {
   return Response.json(history)
 }
 
-// POST (save done project)
-export async function POST(req: Request) {
-  const body = await req.json()
-
-  const newHistory = await prisma.history.create({
-    data: {
-      userId: body.userId,
-      projectName: body.projectName,
-      location: body.location,
-    },
-  })
-
-  return Response.json(newHistory)
-}
+// Projects are added to History by "Done" on the Clients page — see DELETE
+// in ../clients/route.ts, which does it together with removing the client.

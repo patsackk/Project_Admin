@@ -100,7 +100,7 @@ export default async function SchedulePage({
   let prevAnchor: Date
   let nextAnchor: Date
   let rangeLabel = ""
-  let monthWeeks: Date[][] = []
+  const monthWeeks: Date[][] = []
   // The "Unassigned Staff" panel follows whichever day/week/month is
   // currently being viewed, not literally today's date.
   let rangeStart: Date

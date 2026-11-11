@@ -5,17 +5,17 @@ import Link from "next/link"
 import toast from "react-hot-toast"
 import { useLanguage } from "@/components/LanguageProvider"
 import { useDialog } from "@/components/DialogProvider"
-import ProjectSelect from "@/components/ProjectSelect"
+import ProjectSelect, { type ProjectOption } from "@/components/ProjectSelect"
+import type { ClientRow, UserSummary } from "@/lib/client-types"
 
 // A client is wherever their project is; the client's own location is only a
 // fallback for rows saved before that rule.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const clientLocation = (c: any) => c.project?.location || (c.location !== "Add Location" && c.location) || "-"
+const clientLocation = (c: ClientRow) => c.project?.location || (c.location !== "Add Location" && c.location) || "-"
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<any[]>([])
-  const [users, setUsers] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [clients, setClients] = useState<ClientRow[]>([])
+  const [users, setUsers] = useState<UserSummary[]>([])
+  const [projects, setProjects] = useState<ProjectOption[]>([])
   const [selectedUserId, setSelectedUserId] = useState("")
   const [selectedProjectId, setSelectedProjectId] = useState("")
   const [search, setSearch] = useState("")
@@ -88,8 +88,8 @@ export default function ClientsPage() {
       setSelectedUserId("")
       setSelectedProjectId("")
       toast.success(t("Client added successfully!", "เพิ่มลูกค้าเรียบร้อยแล้ว!"))
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err) {
+      toast.error((err as Error).message)
     }
   }
 
@@ -115,8 +115,8 @@ export default function ClientsPage() {
       if (!data.success) throw new Error(data.message)
       setClients((prev) => prev.filter((c) => c.id !== id))
       toast.success(t("Client deleted successfully!", "ลบลูกค้าเรียบร้อยแล้ว!"))
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err) {
+      toast.error((err as Error).message)
     }
   }
 
@@ -132,7 +132,7 @@ export default function ClientsPage() {
       )
     : clients
 
-  const handleDone = async (client: any) => {
+  const handleDone = async (client: ClientRow) => {
   const confirmed = await dialog.confirm({
     title: t("Mark this project as done?", "ทำเครื่องหมายว่าโครงการนี้เสร็จสิ้นแล้ว?"),
     message: t(
@@ -144,34 +144,22 @@ export default function ClientsPage() {
   if (!confirmed) return
 
   try {
-    // 1. Save to history
-    await fetch("/api/history", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: client.userId,
-        projectName: client.project?.name ?? "No Project",
-        location: clientLocation(client),
-      }),
-    })
-
-    // 2. Delete client
-    await fetch("/api/clients", {
+    // The server saves it to History and removes the client in one go.
+    const res = await fetch("/api/clients", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ id: client.id, action: "done" }),
     })
+    const data = await res.json()
+    if (!data.success) throw new Error(data.message)
 
-    // 3. Update UI
     setClients((prev) => prev.filter((c) => c.id !== client.id))
 
     toast.success(t("Project marked as done!", "ทำเครื่องหมายโครงการว่าเสร็จสิ้นแล้ว!"))
-  } catch (err: any) {
-    toast.error(err.message)
+  } catch (err) {
+    toast.error((err as Error).message)
   }
 }
 

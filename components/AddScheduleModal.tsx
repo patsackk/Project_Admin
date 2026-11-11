@@ -4,7 +4,17 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import { useLanguage } from "@/components/LanguageProvider"
 
-export default function AddScheduleModal({ workers, projects, action }: any) {
+type Option = { id: number; name: string }
+
+export default function AddScheduleModal({
+  workers,
+  projects,
+  action,
+}: {
+  workers: Option[]
+  projects: Option[]
+  action: (formData: FormData) => Promise<{ success: boolean; error?: string } | undefined>
+}) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -62,7 +72,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
             <div>
               <label className="label">{t("Worker", "ผู้ปฏิบัติงาน")}</label>
               <select name="workerId" className="input">
-                {workers.map((w: any) => (
+                {workers.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.name}
                   </option>
@@ -74,7 +84,7 @@ export default function AddScheduleModal({ workers, projects, action }: any) {
             <div>
               <label className="label">{t("Project", "โครงการ")}</label>
               <select name="projectId" className="input">
-                {projects.map((p: any) => (
+                {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>

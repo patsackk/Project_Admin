@@ -5,7 +5,7 @@ import ProjectCard from "@/components/admin/ProjectCard"
 import { useLanguage } from "@/components/LanguageProvider"
 
 export default function ProjectPage() {
-  const [projects, setProjects] = useState<any[]>([])
+  const [projects, setProjects] = useState<{ id: number; name: string; location: string; schedules: unknown[] }[]>([])
   const { t } = useLanguage()
 
   useEffect(() => {

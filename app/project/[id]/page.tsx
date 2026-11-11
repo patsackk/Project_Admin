@@ -6,11 +6,25 @@ import { useParams } from "next/navigation"
 import { ArrowLeft, MapPin } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
 
+type ProjectDetail = {
+  id: number
+  name: string
+  location: string
+  schedules: {
+    id: number
+    date: string
+    startTime: string
+    endTime: string
+    worker: { name: string; team: string }
+  }[]
+}
+
 export default function ProjectDetailPage() {
   const params = useParams()
   const id = params.id
 
-  const [project, setProject] = useState<any>(null)
+  // undefined while loading, null when there's no project with this id
+  const [project, setProject] = useState<ProjectDetail | null | undefined>(undefined)
   const { t, locale } = useLanguage()
 
   useEffect(() => {
@@ -23,7 +37,8 @@ export default function ProjectDetailPage() {
     if (id) fetchProject()
   }, [id])
 
-  if (!project) return <p className="page empty-state">{t("Loading...", "กำลังโหลด...")}</p>
+  if (project === undefined) return <p className="page empty-state">{t("Loading...", "กำลังโหลด...")}</p>
+  if (project === null) return <p className="page empty-state">{t("Project not found.", "ไม่พบโครงการ")}</p>
 
   return (
     <div className="page">
@@ -60,7 +75,7 @@ export default function ProjectDetailPage() {
             </thead>
 
             <tbody>
-              {project.schedules.map((s: any) => (
+              {project.schedules.map((s) => (
                 <tr key={s.id}>
                   <td className="font-medium text-gray-900">{s.worker.name}</td>
                   <td>{s.worker.team}</td>
