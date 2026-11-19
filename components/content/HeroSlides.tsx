@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react"
 import { addHeroSlides, deleteHeroSlide, moveHeroSlide, type ContentResult } from "@/app/content/actions"
 import { useLanguage } from "@/components/LanguageProvider"
+import { uploadFormFiles } from "@/lib/upload-client"
 import Tooltip from "@/components/Tooltip"
 import { useDialog } from "@/components/DialogProvider"
 
@@ -35,7 +36,10 @@ export default function HeroSlides({ slides, canEdit }: { slides: Slide[]; canEd
     if (!files || files.length === 0) return
     const formData = new FormData()
     Array.from(files).forEach((f) => formData.append("images", f))
-    run(() => addHeroSlides(formData), t("Slides added", "เพิ่มสไลด์แล้ว"))
+    run(async () => {
+      await uploadFormFiles(formData, ["images"], "content")
+      return addHeroSlides(formData)
+    }, t("Slides added", "เพิ่มสไลด์แล้ว"))
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 

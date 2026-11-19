@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useTransition } from "react"
 import toast from "react-hot-toast"
 import { Plus, X } from "lucide-react"
 import { saveStatusUpdate } from "@/app/status/actions"
+import { uploadFormFiles } from "@/lib/upload-client"
 import { useLanguage } from "@/components/LanguageProvider"
 import type { Translate } from "@/lib/i18n"
 
@@ -149,6 +150,7 @@ export default function StatusUpdateForm({
     startTransition(async () => {
       let result
       try {
+        await uploadFormFiles(formData, ["photos"], "status")
         result = await saveStatusUpdate(formData)
       } catch (error) {
         console.error("Save Status Update Error:", error)

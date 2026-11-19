@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import { MapPin, Pencil, Plus, Trash2, X } from "lucide-react"
 import { deleteContent, saveContent, type ContentKind } from "@/app/content/actions"
 import { useLanguage } from "@/components/LanguageProvider"
+import { uploadFormFiles } from "@/lib/upload-client"
 import { useDialog } from "@/components/DialogProvider"
 
 // Portfolio projects and services share one editor; projects just have a
@@ -169,6 +170,7 @@ function ContentForm({
     startTransition(async () => {
       let result
       try {
+        await uploadFormFiles(formData, ["coverFile", "galleryFiles"], "content")
         result = await saveContent(kind, formData)
       } catch (err) {
         console.error("Save Content Error:", err)

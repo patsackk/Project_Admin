@@ -1,16 +1,14 @@
 "use server"
 
-import { mkdir, writeFile } from "fs/promises"
-import path from "path"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { hasAccess } from "@/lib/permissions"
 import { getT } from "@/lib/i18n-server"
+import { saveUploads as saveFolderUploads, uploadEntries } from "@/lib/uploads"
 
-// Same caveat as status photos: /public/uploads only persists on a host with
-// a writable, persistent filesystem. The client site loads these from the
-// admin app's origin (see middleware: /uploads is public).
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "content")
+// Images are Vercel Blob URLs on Vercel, or /uploads/content/... in local
+// dev (lib/uploads.ts). The client site loads the local ones from the admin
+// app's origin (see middleware: /uploads is public).
 
 export type ContentKind = "project" | "service"
 
@@ -18,21 +16,9 @@ export type ContentResult = { success: true } | { success: false; error: string 
 
 const PROJECT_TYPES = ["Residential", "Commercial"]
 
-async function saveUploads(files: File[]) {
-  if (files.length === 0) return []
-  await mkdir(UPLOAD_DIR, { recursive: true })
-  const paths: string[] = []
-  for (const file of files) {
-    const ext = path.extname(file.name) || ""
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
-    await writeFile(path.join(UPLOAD_DIR, safeName), Buffer.from(await file.arrayBuffer()))
-    paths.push(`/uploads/content/${safeName}`)
-  }
-  return paths
-}
+const saveUploads = (entries: FormDataEntryValue[]) => saveFolderUploads(entries, "content")
 
-const filesFrom = (formData: FormData, name: string) =>
-  formData.getAll(name).filter((f): f is File => f instanceof File && f.size > 0)
+const filesFrom = uploadEntries
 
 const text = (formData: FormData, name: string) => formData.get(name)?.toString().trim() ?? ""
 

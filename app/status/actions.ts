@@ -1,17 +1,10 @@
 "use server"
 
-import { mkdir, writeFile } from "fs/promises"
-import path from "path"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
 import { getT } from "@/lib/i18n-server"
-
-// Photos are written to /public/uploads/status. That only persists on a
-// host with a writable, persistent filesystem (fine for this dev setup /
-// a traditional server); it will NOT survive redeploys on a serverless
-// host like Vercel — swap for object storage before deploying there.
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "status")
+import { saveUploads, uploadEntries } from "@/lib/uploads"
 
 export type SaveStatusUpdateResult =
   | { success: true }
@@ -57,19 +50,8 @@ export async function saveStatusUpdate(formData: FormData): Promise<SaveStatusUp
     }
   }
 
-  const photoFiles = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0)
-
-  const newPhotoPaths: string[] = []
-  if (photoFiles.length > 0) {
-    await mkdir(UPLOAD_DIR, { recursive: true })
-    for (const file of photoFiles) {
-      const ext = path.extname(file.name) || ""
-      const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
-      const buffer = Buffer.from(await file.arrayBuffer())
-      await writeFile(path.join(UPLOAD_DIR, safeName), buffer)
-      newPhotoPaths.push(`/uploads/status/${safeName}`)
-    }
-  }
+  // Vercel Blob URLs on Vercel, files in local dev — see lib/uploads.ts.
+  const newPhotoPaths = await saveUploads(uploadEntries(formData, "photos"), "status")
 
   // Which of the existing photos the form kept (unchecked ones were
   // removed). Only trust entries that actually belonged to this record —
