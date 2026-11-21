@@ -24,7 +24,7 @@ const servicesData = (t) => [
       "We ensure clean and efficient water supply systems...",
       "เราดูแลให้ระบบประปาสะอาดและมีประสิทธิภาพ..."
     ),
-    gallery: ["/images/water2.jpg", "/images/water8.jpg"],
+    gallery: ["/images/water2.jpg", "/images/water8.JPG"],
   },
   {
     id: 3,
@@ -35,10 +35,10 @@ const servicesData = (t) => [
       "บริการออกแบบระบบภายในบ้านของเรามอบงานติดตั้งระบบที่ปลอดภัย มีประสิทธิภาพ และวางแผนอย่างดีสำหรับอาคารที่พักอาศัย"
     ),
     gallery: [
-      "/images/air2.jpg",
+      "/images/air2.JPG",
       "/images/air3.jpg",
       "/images/air4.jpg",
-      "/images/air5.jpg",
+      "/images/air5.JPG",
     ],
   },
   {
