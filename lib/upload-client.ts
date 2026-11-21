@@ -1,4 +1,4 @@
-import { upload } from "@vercel/blob/client"
+import { uploadPresigned } from "@vercel/blob/client"
 import type { UploadFolder } from "@/lib/uploads"
 
 let blobEnabled: Promise<boolean> | null = null
@@ -26,7 +26,7 @@ export async function uploadFormFiles(formData: FormData, fields: string[], fold
       if (typeof entry === "string") {
         formData.append(field, entry)
       } else if (entry.size > 0) {
-        const blob = await upload(`${folder}/${entry.name}`, entry, {
+        const blob = await uploadPresigned(`${folder}/${entry.name}`, entry, {
           access: "public",
           handleUploadUrl: "/api/upload",
         })

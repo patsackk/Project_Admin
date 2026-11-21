@@ -4,8 +4,9 @@
 //   1. Create the tables in the online database:
 //        DATABASE_URL="<neon url>" npx prisma db push
 //   2. Copy:
-//        TARGET_DATABASE_URL="<neon url>" BLOB_READ_WRITE_TOKEN="<token>" \
-//          node --env-file=.env scripts/copy-to-cloud.mjs
+//        TARGET_DATABASE_URL="<online url>" \
+//          node --env-file=.env --env-file=.env.vercel scripts/copy-to-cloud.mjs
+//      (.env.vercel from `vercel env pull .env.vercel` holds the Blob credentials)
 //
 // Reads from DATABASE_URL in .env (the local database). Refuses to run if
 // the online database already has users, so it can't copy twice.
@@ -16,9 +17,11 @@ import { put } from "@vercel/blob"
 
 const target = process.env.TARGET_DATABASE_URL
 if (!target) throw new Error("Set TARGET_DATABASE_URL to the online database")
-// Without a Blob token the photos keep their /uploads paths (test runs only).
-const movePhotos = !!process.env.BLOB_READ_WRITE_TOKEN
-if (!movePhotos) console.warn("No BLOB_READ_WRITE_TOKEN — photos are NOT moved")
+// Blob credentials: BLOB_STORE_ID + VERCEL_OIDC_TOKEN (from `vercel env pull`)
+// or BLOB_READ_WRITE_TOKEN. Without them the photos keep their /uploads paths
+// (test runs only).
+const movePhotos = !!(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN)
+if (!movePhotos) console.warn("No Blob credentials — photos are NOT moved")
 
 const from = new PrismaClient()
 const to = new PrismaClient({ datasourceUrl: target })

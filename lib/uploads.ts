@@ -4,6 +4,10 @@ import path from "path"
 export const UPLOAD_FOLDERS = ["status", "content"] as const
 export type UploadFolder = (typeof UPLOAD_FOLDERS)[number]
 
+// A Blob store is connected: either the newer OIDC setup Vercel adds when you
+// connect a store (BLOB_STORE_ID), or an older read-write token.
+export const blobConfigured = () => !!(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN)
+
 // A photo the browser already uploaded to this app's Vercel Blob store.
 // Only accept those — never let a form smuggle in an arbitrary URL.
 function isOwnBlobUrl(value: string, folder: UploadFolder) {
