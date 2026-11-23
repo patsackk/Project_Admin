@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import Link from "next/link"
 import { ArrowLeft, Pencil, Printer } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
@@ -17,6 +17,24 @@ export default function PrintToolbar({
   actions?: ReactNode
 }) {
   const { t } = useLanguage()
+
+  // A4 sheets are wider than a phone. Shrink each one to fit the screen so
+  // the whole page is readable without sideways scrolling. Screen only:
+  // printing resets the zoom (globals.css), so the paper stays full size.
+  useEffect(() => {
+    const fit = () => {
+      const available = document.documentElement.clientWidth - 24 // .doc-viewer side padding
+      document.querySelectorAll<HTMLElement>(".sheet").forEach((sheet) => {
+        sheet.style.zoom = ""
+        const width = sheet.offsetWidth
+        if (width > available) sheet.style.zoom = String(available / width)
+      })
+    }
+    fit()
+    window.addEventListener("resize", fit)
+    return () => window.removeEventListener("resize", fit)
+  }, [])
+
   return (
     <div className="no-print mx-auto mb-6 flex max-w-[297mm] flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
       {backHref ? (
@@ -32,7 +50,7 @@ export default function PrintToolbar({
           "ต้องการไฟล์ PDF ให้กดพิมพ์แล้วเลือก “บันทึกเป็น PDF”"
         )}
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
         {actions}
         {editHref && (
           <Link href={editHref} className="btn-secondary">

@@ -184,7 +184,9 @@ export default async function SchedulePage({
   const linkFor = (a: Date, r: RangeType = activeRange, v: string = activeView) =>
     `/schedule?date=${toParam(a)}&range=${r}&view=${v}`
 
-  const gridTemplate = { gridTemplateColumns: `200px repeat(${viewDates.length}, 1fr)` }
+  // Each day keeps a readable minimum width; on narrow screens the calendar
+  // card scrolls sideways instead of squashing the days.
+  const gridTemplate = { gridTemplateColumns: `clamp(130px, 18vw, 180px) repeat(${viewDates.length}, minmax(72px, 1fr))` }
 
   return (
     <div className="page max-w-none">
@@ -235,7 +237,7 @@ export default async function SchedulePage({
               <ChevronLeft size={16} />
             </Link>
           </Tooltip>
-          <span className="font-semibold text-sm min-w-[180px] text-center">{rangeLabel}</span>
+          <span className="font-semibold text-sm text-center sm:min-w-[180px]">{rangeLabel}</span>
           <Tooltip label={t("Next", "ถัดไป")} align="left">
             <Link
               href={linkFor(nextAnchor)}
@@ -253,7 +255,7 @@ export default async function SchedulePage({
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* DAY / WEEK / MONTH */}
           <div className="flex bg-gray-100 rounded-full p-1">
             {(["day", "week", "month"] as RangeType[]).map((r) => (
@@ -293,8 +295,10 @@ export default async function SchedulePage({
         </div>
       </div>
 
-      {/* STAFF SIDEBAR + CALENDAR */}
-      <div className="flex gap-6 items-start">
+      {/* STAFF SIDEBAR + CALENDAR — side by side on wide screens; otherwise
+          the calendar comes first and the free-staff list drops below it,
+          so the whole week fits without scrolling. */}
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
 
         <UnassignedStaffPanel
           workers={workerAvailability.filter((w) => w.available)}
@@ -302,10 +306,10 @@ export default async function SchedulePage({
         />
 
         {/* CALENDAR */}
-        <div className="card overflow-x-auto flex-1">
+        <div className="card min-w-0 flex-1 overflow-x-auto">
 
         {activeRange === "month" ? (
-          <div>
+          <div className="min-w-[640px]">
             <div className="grid grid-cols-7 border-b bg-gray-50 text-xs text-gray-500 font-medium">
               {(t(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], ["จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส.", "อา."])).map((d) => (
                 <div key={d} className="p-2 text-center">{d}</div>
@@ -356,7 +360,7 @@ export default async function SchedulePage({
             ))}
           </div>
         ) : (
-        <div>
+        <div className="w-max min-w-full">
 
         <div className="grid border-b bg-gray-50 text-sm" style={gridTemplate}>
 

@@ -6,11 +6,15 @@ import { PanelLeftClose } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider';
 import Tooltip from '@/components/Tooltip';
 import type { Translate } from '@/lib/i18n';
+import type { SidebarState } from '@/app/client-layout';
 
 type SidebarProps = {
-  isOpen: boolean;
+  isOpen: SidebarState;
   onClose: () => void;
 };
+
+// Below this width (phones, iPads) the sidebar is an overlay drawer.
+const DOCKED_MIN_WIDTH = 1024;
 
 // Ordered by how often each page is used: daily work first, settings last.
 const menuGroups = (t: Translate) => [
@@ -47,20 +51,26 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Backdrop — mobile only, closes the drawer on tap outside */}
-      {isOpen && (
+      {/* Backdrop — phone/iPad only, closes the drawer on tap outside */}
+      {isOpen === true && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-40 flex h-screen w-64 flex-col
+        className={`fixed top-0 left-0 z-40 flex h-dvh w-64 max-w-[80vw] flex-col
           bg-gradient-to-b from-white via-sky-50 to-sky-100 shadow-lg
           transition-transform duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          ${
+            isOpen === null
+              ? '-translate-x-full lg:translate-x-0'
+              : isOpen
+                ? 'translate-x-0'
+                : '-translate-x-full'
+          }`}
       >
         {/* Logo + collapse button */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-sky-100">
@@ -97,7 +107,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       key={item.href}
                       href={item.href}
                       onClick={() => {
-                        if (window.innerWidth < 768) onClose();
+                        if (window.innerWidth < DOCKED_MIN_WIDTH) onClose();
                       }}
                       className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${
                         active

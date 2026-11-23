@@ -26,7 +26,7 @@ export default function UnassignedStaffPanel({
   )
 
   return (
-    <div className="card w-72 shrink-0 p-4 h-fit">
+    <div className="card order-last w-full shrink-0 p-4 h-fit xl:order-none xl:w-64">
       <div className="flex items-center gap-2 mb-4">
         <Users size={18} className="text-sky-600" />
         <div>

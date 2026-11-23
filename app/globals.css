@@ -215,6 +215,9 @@ html {
   margin: 10mm 12mm;
 }
 @media print {
+  .sheet {
+    zoom: 1 !important; /* undo the fit-to-phone-screen zoom from PrintToolbar */
+  }
   .doc-viewer {
     background: none;
     min-height: 0;
