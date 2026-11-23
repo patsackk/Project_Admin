@@ -12,6 +12,8 @@ const PUBLIC_PREFIXES = [
   "/uploads",
   // Quotations / invoices emailed to clients, opened by a secret link.
   "/share/",
+  // Fonts for those documents' PDFs (lib/pdf.ts), fetched with no session.
+  "/fonts/",
   "/api/login",
   "/api/register",
   // Not /api/contact: listing messages and replying (which can send email)

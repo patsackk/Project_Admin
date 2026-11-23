@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
-import { Mail, Paperclip, Send, X } from "lucide-react"
+import { Mail, Send, X } from "lucide-react"
 import { useLanguage } from "@/components/LanguageProvider"
 import { emailDefaults, formatThaiDate, type DocKind } from "@/lib/documents"
 import { sendDocumentEmail } from "@/app/documents/actions"
@@ -53,7 +53,6 @@ function SendEmailModal({ doc, onClose }: { doc: SendInfo; onClose: () => void }
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const defaults = emailDefaults(doc.kind, doc)
-  const [fileName, setFileName] = useState("")
 
   const submit = (formData: FormData) => {
     formData.set("kind", doc.kind)
@@ -128,32 +127,25 @@ function SendEmailModal({ doc, onClose }: { doc: SendInfo; onClose: () => void }
             </span>
           </label>
 
-          <div>
-            <label className="btn-ghost cursor-pointer border border-dashed border-gray-300">
-              <Paperclip size={16} />
-              {fileName || t("Attach PDF (optional)", "แนบไฟล์ PDF (ไม่บังคับ)")}
-              <input
-                type="file"
-                name="attachment"
-                accept="application/pdf"
-                className="hidden"
-                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
-              />
-            </label>
-            <p className="mt-1 text-xs text-gray-500">
-              {t(
-                "To attach the file itself: open the document, click Print / PDF → “Save as PDF”, then pick that file here.",
-                "ต้องการแนบไฟล์: เปิดเอกสาร กดพิมพ์ / PDF → “บันทึกเป็น PDF” แล้วเลือกไฟล์นั้นที่นี่"
-              )}
-            </p>
-          </div>
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input type="checkbox" name="attachPdf" defaultChecked className="mt-0.5 h-4 w-4 accent-sky-600" />
+            <span>
+              {t("Attach the PDF", "แนบไฟล์ PDF")}
+              <span className="block text-xs text-gray-500">
+                {t(
+                  `The ${doc.kind} is saved as a PDF and attached to the email automatically.`,
+                  `ระบบจะสร้าง${doc.kind === "quotation" ? "ใบเสนอราคา" : "ใบแจ้งหนี้"}เป็นไฟล์ PDF และแนบไปกับอีเมลให้อัตโนมัติ`
+                )}
+              </span>
+            </span>
+          </label>
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-ghost">
               {t("Cancel", "ยกเลิก")}
             </button>
             <button type="submit" disabled={pending} className="btn-primary">
-              <Send size={16} /> {pending ? t("Sending…", "กำลังส่ง…") : t("Send", "ส่ง")}
+              <Send size={16} /> {pending ? t("Preparing and sending…", "กำลังเตรียมและส่ง…") : t("Send", "ส่ง")}
             </button>
           </div>
         </form>

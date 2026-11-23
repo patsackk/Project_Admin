@@ -6,6 +6,7 @@ import { headers } from "next/headers"
 import { Prisma } from "@prisma/client"
 import { mailConfigured, sendMail, type MailAttachment } from "@/lib/mail"
 import { documentEmailHtml } from "@/lib/document-email"
+import { renderPdf } from "@/lib/pdf"
 import { prisma } from "@/lib/prisma"
 import { hasAccess } from "@/lib/permissions"
 import { getT } from "@/lib/i18n-server"
@@ -358,7 +359,6 @@ export async function deleteInvoice(id: number): Promise<SimpleResult> {
 // ---------- Sending by email ----------
 
 const EMAIL_RE = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/
-const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024
 
 // Where the client opens the shared document. PUBLIC_ADMIN_URL wins (set it
 // on the live server); otherwise the address this request came in on.
@@ -385,7 +385,7 @@ export async function sendDocumentEmail(formData: FormData): Promise<SimpleResul
   const subject = formData.get("subject")?.toString().trim() ?? ""
   const message = formData.get("message")?.toString().trim() ?? ""
   const includeLink = formData.get("includeLink") === "on"
-  const file = formData.get("attachment")
+  const attachPdf = formData.get("attachPdf") === "on"
 
   if (!mailConfigured()) {
     return {
@@ -403,18 +403,7 @@ export async function sendDocumentEmail(formData: FormData): Promise<SimpleResul
     return { success: false, error: t("Subject and message are required.", "กรุณากรอกหัวเรื่องและข้อความ") }
   }
 
-  const attachments: MailAttachment[] = []
-  if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_ATTACHMENT_BYTES) {
-      return { success: false, error: t("The attached file is too big (max 15 MB).", "ไฟล์แนบใหญ่เกินไป (สูงสุด 15 MB)") }
-    }
-    attachments.push({
-      filename: file.name || "document.pdf",
-      content: Buffer.from(await file.arrayBuffer()),
-      contentType: file.type || undefined,
-    })
-  }
-  if (!includeLink && attachments.length === 0) {
+  if (!includeLink && !attachPdf) {
     return {
       success: false,
       error: t("Include the link or attach the PDF, so the client gets the document.", "กรุณาแนบลิงก์หรือไฟล์ PDF เพื่อให้ลูกค้าได้รับเอกสาร"),
@@ -456,7 +445,32 @@ export async function sendDocumentEmail(formData: FormData): Promise<SimpleResul
       return failed
     }
 
-    const link = includeLink ? `${origin}/share/${kind === "quotation" ? "q" : "i"}/${token}` : null
+    const shareUrl = `${origin}/share/${kind === "quotation" ? "q" : "i"}/${token}`
+    const link = includeLink ? shareUrl : null
+
+    // The PDF is printed from the share page, so its token must be saved first.
+    const attachments: MailAttachment[] = []
+    if (attachPdf) {
+      if (kind === "quotation") await prisma.quotation.update({ where: { id }, data: { shareToken: token } })
+      else await prisma.invoice.update({ where: { id }, data: { shareToken: token } })
+      try {
+        attachments.push({
+          filename: `${title.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`,
+          content: await renderPdf(shareUrl),
+          contentType: "application/pdf",
+        })
+      } catch (error) {
+        console.error("PDF Render Error:", error)
+        return {
+          success: false,
+          error: t(
+            "The PDF couldn't be created, so nothing was sent. Try again, or untick “Attach the PDF” and send the link only.",
+            "สร้างไฟล์ PDF ไม่สำเร็จ จึงยังไม่ได้ส่งอีเมล ลองใหม่อีกครั้ง หรือยกเลิก “แนบไฟล์ PDF” แล้วส่งเฉพาะลิงก์"
+          ),
+        }
+      }
+    }
+
     await sendMail({
       to: to.join(", "),
       subject,
@@ -465,7 +479,7 @@ export async function sendDocumentEmail(formData: FormData): Promise<SimpleResul
       attachments,
     })
 
-    const sent = { sentAt: new Date(), sentTo: to.join(", "), ...(link ? { shareToken: token } : {}) }
+    const sent = { sentAt: new Date(), sentTo: to.join(", "), ...(link || attachPdf ? { shareToken: token } : {}) }
     if (kind === "quotation") {
       const q = await prisma.quotation.update({ where: { id }, data: sent })
       if (q.status === "draft") await prisma.quotation.update({ where: { id }, data: { status: "sent" } })
